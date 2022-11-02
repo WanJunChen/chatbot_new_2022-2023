@@ -23,6 +23,10 @@ def index():
 def expression():
 	return render_template('chatbot_expression_new.html')
 
+@app.route('/QAchatbot',methods=['POST','GET'])
+def QAchatbot():
+	return render_template('chatbot_QA.html')
+
 @app.route('/talk',methods=['POST'])
 def getJson():
 

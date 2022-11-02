@@ -576,6 +576,7 @@ def match_book(req):
     for i in myBookList.find():
         bookDB.append(i['bookName'])
         bookDB.append(i['bookNameTranslated'])
+    print(bookDB)
     if first_match:
         # 第一次先找出相似書名給使用者確認
         similarity_book = {}
