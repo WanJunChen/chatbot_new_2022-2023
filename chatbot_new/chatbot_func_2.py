@@ -7,6 +7,8 @@ import pymongo
 import connectDB
 import random
 import pandas as pd
+import Get_squadAnswer
+import Get_squadBook
 
 myClient: object
 myBotData: object
@@ -17,6 +19,8 @@ Prompt_list: object
 studentName_dic: object
 # Prompt_task_list = ['Time', 'Location', 'Affection', 'Life']
 Prompt_task_list = ['Time']
+# set chatMode to 'chatBook' or 'QA'
+chatMode = 'QA'
 
 def check_input(req):
     print('確認說話內容')
@@ -576,7 +580,7 @@ def match_book(req):
     for i in myBookList.find():
         bookDB.append(i['bookName'])
         bookDB.append(i['bookNameTranslated'])
-    print(bookDB)
+    # print(bookDB)
     if first_match:
         # 第一次先找出相似書名給使用者確認
         similarity_book = {}
@@ -672,13 +676,20 @@ def match_book(req):
     else:
         userInput = req['intent']['query']
         temp_bookList = req['session']['params']['User_temp_bookList']
+        # 依照使用者按下的按鈕(userInput)來配對書名
         if userInput in temp_bookList.keys():
             time = req['user']['lastSeenTime']
             user_id = req['session']['params']['User_id']
             bookName = temp_bookList[userInput]
             dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
             nowBook = myClient[dbBookName]
-            myDialogList = nowBook['S_R_Dialog']
+
+            # 2022/11/2
+            if chatMode == 'chatbook':
+                myDialogList = nowBook['S_R_Dialog']
+            elif chatMode == 'QA':
+                myDialogList = nowBook['QA_Dialog']
+            
             book_finish = False
 
             dialog_index = myDialogList.find().count()
@@ -697,9 +708,10 @@ def match_book(req):
                 if user_data_load is not None and bookName in user_data_load["BookTalkSummary"].keys():
                     # 書本狀態紀錄為已完成
                     if user_data_load["BookTalkSummary"][bookName]["Finish"]:
-                        find_condition = {'type': 'common_finished_T'}
-                        find_result = myCommonList.find_one(find_condition)
-                        response = choice(find_result['content'])
+                        if chatMode == 'chatBook':
+                            find_condition = {'type': 'common_finished_T'}
+                            find_result = myCommonList.find_one(find_condition)
+                            response = choice(find_result['content'])
                         book_finish = True
 
             # 記錄對話過程
@@ -732,7 +744,7 @@ def match_book(req):
                         }
                     }
                 }
-            else:
+            elif chatMode == 'chatBook':
                 # 比對到且沒有讀完 開始聊書
                 state = False
                 # 建立使用者資料
@@ -828,6 +840,42 @@ def match_book(req):
                     }
 
                 Prompt_list.pop(0)
+            elif chatMode == 'QA':
+                # 2022/11/03
+
+                state = False
+                # 建立使用者資料
+                player = req['user']['player']
+                user_id = req['session']['params']['User_id']
+                connectDB.updateUser(myUserList, user_id, bookName, state, "None")
+                response_dict = {
+                    "prompt": {
+                        "firstSimple": {
+                            "speech": [response],
+                            "text": [response],
+                            "delay": [2],
+                            "expression": "happy"
+                        }
+                    },
+                    "session": {
+                        "params": {
+                            "User_id": user_id,
+                            "User_book": bookName,
+                            "User_say": userSay,
+                            "dialog_count": 0,
+                            "sentence_id": [],
+                            "noIdea_count": 0,
+                            "question_count": 0,
+                            "User_say_len": [],
+                            "dialog_count_limit": 3
+                        }
+                    },
+                    "scene": {
+                        "next": {
+                            'name': 'Prompt_SQuAD'
+                        }
+                    }
+                }
 
 
         else:
@@ -863,7 +911,186 @@ def match_book(req):
     print(response)
     return response_dict
 
+# 2022/11/02
+# 引導使用者向機器人問問題
+def Prompt_SQuAD(req):
+    print('引導SQuAD問答')
 
+    session_id = req['session']['id']
+    time = req['user']['lastSeenTime']
+    bookName = req['session']['params']['User_book']
+    userSay = req['intent']['query']
+    dialog_count = req['session']['params']['dialog_count']
+    sentence_id = req['session']['params']['sentence_id']
+    noIdea_count = req['session']['params']['noIdea_count']
+    question_count = req['session']['params']['question_count']
+    User_say_len = req['session']['params']['User_say_len']
+    user_dialog_count = {}
+    dialog_count_limit = req['session']['params']['dialog_count_limit']
+    player = req['user']['player']
+
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+    myDialogList = nowBook['QA_Dialog']
+    find_common = {'type': 'common_accept_question'}
+    find_common_result = myCommonList.find_one(find_common)
+    response = choice(find_common_result['content'])
+    
+    dialog_index = myDialogList.find().count()
+    if dialog_index == 0:
+        dialog_id = 0
+    else:
+        dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+
+    # 記錄對話過程
+    connectDB.addDialog(myDialogList, dialog_id, 'chatbot', response, time, session_id, req['scene']['name'])
+    response_dict = {
+            "prompt": {
+                "firstSimple": {
+                    "speech": [response],
+                    "text": [response],
+                    "delay": [2],
+                    "expression": "happy"
+                }
+            },
+            "scene": {
+                "next": {
+                    "name": "SQuAD_get_Ans"
+                }
+            },
+            "session": {
+                "params": {
+                    "NowScene": "Prompt_SQuAD",
+                    "NextScene": "SQuAD_get_Ans",
+                    "dialog_count": dialog_count,
+                    "sentence_id": sentence_id,
+                    "noIdea_count": noIdea_count,
+                    "question_count": question_count,
+                    "User_say_len": User_say_len,
+                    "user_dialog_count": user_dialog_count,
+                    "dialog_count_limit": dialog_count_limit,
+                    "User_say": userSay
+                }
+            }
+        }
+    return response_dict
+
+
+def SQuAD_check_input(req):
+    print('(SQuAD)學生提問')
+    session_id = req['session']['id']
+    time = req['user']['lastSeenTime']
+    bookName = req['session']['params']['User_book']
+    user_id = req['session']['params']['User_id']
+    userSay = req['session']['params']['User_say']
+    question_count = req['session']['params']['question_count']
+
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+
+    response = ''
+    # 記錄對話過程
+    myDialogList = nowBook['QA_Dialog']
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
+    
+    response_dict = {
+            "prompt": {
+                "firstSimple": {
+                    "speech": [response],
+                    "text": [response],
+                    "delay": [len(response) / 2]
+                }
+            },
+            "session": {
+                "params": {
+                    "User_say": userSay,
+                    "question_count": question_count
+                }
+            },
+            "scene": {
+                "next": {
+                    "name": "SQuAD_get_Ans"
+                }
+            }
+        }
+    return response_dict
+
+def SQuAD_get_Ans(req):
+    print('(SQuAD)生成答案')
+
+    session_id = req['session']['id']
+    time = req['user']['lastSeenTime']
+    bookName = req['session']['params']['User_book']
+    user_id = req['session']['params']['User_id']
+    userSay = req['intent']['query']
+
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+    
+    # 記錄對話過程
+    myDialogList = nowBook['QA_Dialog']
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
+
+    find_common = {'type': 'common_accept_question'}
+    find_common_result = myCommonList.find_one(find_common)
+    response = choice(find_common_result['content'])
+
+    # 「回答」的通用句
+    find_common = {'type': 'common_thinking'}
+    find_common_result = myCommonList.find_one(find_common)
+    response = choice(find_common_result['content'])
+
+    find_common = {'type': 'common_answer_T'}
+    find_common_result_answerT = myCommonList.find_one(find_common)
+
+    find_common = {'type': 'common_answer_F'}
+    find_common_result_answerF = myCommonList.find_one(find_common)
+
+    # 將書名資料傳送給機器人伺服器
+    Check = Get_squadBook.get_squadBook(bookName, False)
+
+    print("http://127.0.0.1:4220/squad_getBook :", Check)
+    if Check:
+        if len(Get_squadAnswer.get_squadAnswer(userSay, False)) != 0:
+            response += choice(find_common_result_answerT['content']).replace('XXX', Get_squadAnswer.get_squadAnswer(userSay, False))
+        else:
+            response += choice(find_common_result_answerF['content'])
+
+    # 記錄對話過程
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'chatbot', response, time, session_id, req['scene']['name'])
+
+    response_dict = {
+        "prompt": {
+            "firstSimple": {
+                "speech": [response],
+                "text": [response],
+                "delay": [2],
+                "expressionP": 1,
+                "expressionA": 1
+            }
+        },
+        "params": {
+            "NextScene": "Prompt_response"
+        },
+        "scene": {
+            "next": {
+                'name': 'SQuAD_get_Ans'
+            }
+        },
+        "session": {
+            "params": {
+                "User_say": userSay
+            }
+        },
+    }
+    return response_dict
+
+# 角色引導
 def Prompt_character(req):
     print('角色引導')
     find_common = {'type': 'common_Prompt_character'}
@@ -879,12 +1106,12 @@ def Prompt_character(req):
     noIdea_count = req['session']['params']['noIdea_count']
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
+    user_dialog_count = {}
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
     player = req['user']['player']
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
-
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     myMaterialList = nowBook['MaterialTable']
@@ -957,7 +1184,7 @@ def Prompt_character(req):
     print(response)
     return response_dict
 
-
+# 動作引導
 def Prompt_action(req):
     print('動作引導')
     find_common = {'type': 'common_Prompt_action'}
@@ -994,9 +1221,9 @@ def Prompt_action(req):
             break
 
 
-    # if response_tmp != '':
-    #     response_tmp += '，還有'
-    response_tmp += result['Sentence_translate']
+    # # if response_tmp != '':
+    # #     response_tmp += '，還有'
+    # response_tmp += result['Sentence_translate']
     for word in ['。', '！', '：']:
         response_tmp = response_tmp.replace(word, ' ')
     response = response.replace('XX', response_tmp)
@@ -1049,7 +1276,7 @@ def Prompt_action(req):
     print(response)
     return response_dict
 
-
+# 對話引導
 def Prompt_dialog(req):
     print('對話引導')
     session_id = req['session']['id']
@@ -1128,6 +1355,7 @@ def Prompt_dialog(req):
     print(response)
     return response_dict
 
+# 接龍引導
 def Prompt_event(req):
     print('接龍引導')
     find_common = {'type': 'common_Prompt_action'}
@@ -1256,7 +1484,7 @@ def Prompt_event(req):
     # response_dict['prompt'].update({'sentence_id': sentence_id,'dialog_count': dialog_count})
     return response_dict
 
-
+# 任務引導
 # def Prompt_task(req):
 #     print('任務引導')
 #     global Prompt_task_list
@@ -1360,6 +1588,7 @@ def Prompt_event(req):
 #     # response_dict['prompt'].update({'sentence_id': sentence_id,'dialog_count': dialog_count})
 #     return response_dict
 
+# 雙人聊天開頭
 def Prompt_beginning(req):
     print('雙人聊天開頭')
     # find_common = {'type': 'common_Prompt_character'}
@@ -1449,6 +1678,7 @@ def Prompt_beginning(req):
     print(response)
     return response_dict
 
+# 角色情感引導
 def Prompt_character_sentiment(req):
     print('角色情感引導')
     # find_common = {'type': 'common_Prompt_character'}
@@ -1574,7 +1804,7 @@ def Prompt_character_sentiment(req):
     print(response)
     return response_dict
 
-
+# 事件情感引導
 def Prompt_action_sentiment(req):
     print('事件情感引導')
     # find_common = {'type': 'common_Prompt_action'}
@@ -1667,6 +1897,7 @@ def Prompt_action_sentiment(req):
     print(response)
     return response_dict
 
+# 詞彙引導
 def Prompt_vocabulary(req):
     print('詞彙引導')
     # find_common = {'type': 'common_Prompt_action'}
@@ -1742,7 +1973,7 @@ def Prompt_vocabulary(req):
     print(response)
     return response_dict
 
-
+# 事件原因引導
 def Prompt_action_reason(req):
     print('事件原因引導')
     # find_common = {'type': 'common_Prompt_action'}
@@ -1832,7 +2063,7 @@ def Prompt_action_reason(req):
     print(response)
     return response_dict
 
-
+# 角色經驗引導
 def Prompt_character_experience(req):
     print('角色經驗引導')
 
@@ -1905,7 +2136,7 @@ def Prompt_character_experience(req):
     print(response)
     return response_dict
 
-
+# 事件經驗引導
 def Prompt_action_experience(req):
     print('事件經驗引導')
 
@@ -1977,6 +2208,7 @@ def Prompt_action_experience(req):
     print(response)
     return response_dict
 
+# 系統回覆
 def Prompt_response(req, predictor, senta):
     print('系統回覆')
     global Prompt_list, Prompt_task_list
@@ -3094,7 +3326,6 @@ def Feeling(req):
     connectDB.addDialog(myDialogList, dialog_id, 'chatbot', response, time, session_id, req['scene']['name'])
 
     return response_dict
-
 
 # 表示認同
 def Assent(req):
