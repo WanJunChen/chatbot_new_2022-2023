@@ -78,6 +78,7 @@ function user_sendMsg(Object) {
 		},1000);
 	}
 	
+	show_chatbotTyping();  // 暫時加的
 	// 清空輸入值
 	TalkWords.value = "";
 }
@@ -118,7 +119,7 @@ function add_userTalk(talk_str){
 	// setTimeout(function(){	
  //    	change_chatbotMood()
 	// },2000);
-	
+
 	clear_suggestList();
 }
 
@@ -142,46 +143,66 @@ function add_chatbotTalk(){
 				chatbotWords_speech[i]="";
 				console.log("重複清空")
 			}
-
-			if(i ==0 ){
-				console.log("i=0")
-				show_chatbotTyping()										
-				setTimeout(function(){pushtext(i)},3000)
-				/*
-				// 內容發音
-				speech_chatbotTalk(chatbotWords_speech[i]);
-				// 將機器人文字顯示於上方
-				chatbotStr = '<div class="dialog-bottom"><div class="top">' + chatbotWords[i] +'</div></div>';
-				Botsay.innerHTML = chatbotStr;				
-				// 下方補進上一句對話框				
-				if(chatbotWords_last!=""){
-				chatbotWords_last_Str =  '<div class="user remote"><div class="text">' + chatbotWords_last +'</div></div>';
-				Words.innerHTML = Words.innerHTML + chatbotWords_last_Str  ;
-				Words.scrollTop = Words.scrollHeight;
+			// 當機器人用SQuAD生成答案時直接pushtext(不需要setTimeout來等待)
+			if(session['params']['NextScene'] == 'SQuAD_get_Ans'){
+				if(i ==0 ){
+					console.log("i=0")							
+					pushtext(i);
 				}
-				chatbotWords_last = chatbotWords[i]
-				*/
-			}
-			else if(i == (chatbotWords.length-1)){
-				console.log("i=last")
-				setTimeout(function(){
-					console.log("ㄇ我在這")
-					show_chatbotTyping()				
+				else if(i == (chatbotWords.length-1)){
+					console.log("i=last");
+					console.log("ㄇ我在這")	;	
 					// 內容發音
 					speech_chatbotTalk(chatbotWords_speech[i]);
 					// 將機器人文字顯示於上方
 					chatbotStr = '<div class="dialog-bottom"><div class="top">' + chatbotWords[i] +'</div></div>';
 					Botsay.innerHTML = chatbotStr;				
 					// 下方補進上一句對話框								
-					chatbotWords_last = chatbotWords[i]
-					},i*7000)
-					
-				
+					chatbotWords_last = chatbotWords[i];
 				}
+				else{
+					console.log("i=else");
+					pushtext(i);
+				}
+			}
 			else{
-				console.log("i=else")
-				show_chatbotTyping()
-				setTimeout(function(){pushtext(i)},i*6000)
+				if(i ==0 ){
+					console.log("i=0");
+					setTimeout(function(){pushtext(i)},3000);
+					/*
+					// 內容發音
+					speech_chatbotTalk(chatbotWords_speech[i]);
+					// 將機器人文字顯示於上方
+					chatbotStr = '<div class="dialog-bottom"><div class="top">' + chatbotWords[i] +'</div></div>';
+					Botsay.innerHTML = chatbotStr;				
+					// 下方補進上一句對話框				
+					if(chatbotWords_last!=""){
+					chatbotWords_last_Str =  '<div class="user remote"><div class="text">' + chatbotWords_last +'</div></div>';
+					Words.innerHTML = Words.innerHTML + chatbotWords_last_Str  ;
+					Words.scrollTop = Words.scrollHeight;
+					}
+					chatbotWords_last = chatbotWords[i]
+					*/
+				}
+				else if(i == (chatbotWords.length-1)){
+					console.log("i=last")
+					setTimeout(function(){
+						console.log("ㄇ我在這")		
+						// 內容發音
+						speech_chatbotTalk(chatbotWords_speech[i]);
+						// 將機器人文字顯示於上方
+						chatbotStr = '<div class="dialog-bottom"><div class="top">' + chatbotWords[i] +'</div></div>';
+						Botsay.innerHTML = chatbotStr;				
+						// 下方補進上一句對話框								
+						chatbotWords_last = chatbotWords[i]
+						},i*7000)
+						
+					
+					}
+				else{
+					console.log("i=else")
+					setTimeout(function(){pushtext(i)},i*6000)
+				}
 			}
 
 		}
@@ -195,16 +216,16 @@ function pushtext(N){
         chatbotWords[N] = "";
         chatbotWords_speech[N] = ""; 
         console.log("重複清空");
-        setTimeout(function(){show_chatbotTyping();},1000)
+        // setTimeout(function(){show_chatbotTyping();},1000)  // 暫時註解
 	            
   	}	
 	if (chatbotWords_last == chatbotWords[N] ){
 		chatbotWords[N]= "";
 		chatbotWords_speech[N]="";
 		console.log("重複清空");
-		setTimeout(function(){show_chatbotTyping();},100)
+		// setTimeout(function(){show_chatbotTyping();},100)  // 暫時註解
 	}
-	show_chatbotTyping()											
+	// show_chatbotTyping()	// 暫時註解										
 	// 內容發音
 	speech_chatbotTalk(chatbotWords_speech[N]);
 	// 將機器人文字顯示於上方
@@ -542,7 +563,7 @@ function analyze_responseData(){
 
 	 //存在問答遊戲模式，切換遊戲背景
 	if(res_data["session"]["params"].hasOwnProperty("game_mode")){
-		console.log("以選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
+		console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
 		Background_Img = '';
 		Background_Style = '';
 		Mode_Words = '';
