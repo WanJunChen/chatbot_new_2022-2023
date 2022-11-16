@@ -543,16 +543,23 @@ function analyze_responseData(){
 	 //存在問答遊戲模式，切換遊戲背景
 	if(res_data["session"]["params"].hasOwnProperty("game_mode")){
 		console.log("以選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
-		Background_Img = ''
+		Background_Img = '';
 		Background_Style = '';
+		Mode_Words = '';
+		WordBG_color = ''
 		if (res_data["session"]["params"]["game_mode"] == "訓練場"){
-			Background_Img = TrainingRoom_ImageUrl
+			Background_Img = TrainingRoom_ImageUrl;
+			WordBG_color = "#302b40";
 		}
 		else if (res_data["session"]["params"]["game_mode"] == "競技場"){
-			Background_Img = PlayingRoom_ImageUrl
+			Background_Img = PlayingRoom_ImageUrl;
+			WordBG_color = "#00bfbe";
 		}
-		Background_Style = 'style = "position:absolute; width: 100%; height: 100%; top: 0; left: 0; background-position: bottom center; background-repeat: no-repeat; background-image: url('+ Background_Img +');"'
-		ModeBackground.innerHTML = '<div class="mode_background" id="mode_background" ' + Background_Style + '></div>'
+		Mode_Words = '<div style="width: 160px; height: 40px; padding: 10px 10px; font-size: 30px; font-family: 微軟正黑體; font-weight: bold; color: white; text-align: center; border-radius: 20px; background-color: ' + WordBG_color + ';">'
+						+ res_data["session"]["params"]["game_mode"]
+						+ '</div>';
+		Background_Style = 'style = "width: 720px; height: 950px; margin: 0px; background-position: bottom center; background-repeat: no-repeat; background-size: contain; background-image: url('+ Background_Img +');"'
+		ModeBackground.innerHTML = '<div ' + Background_Style + '><center>' + Mode_Words + '</center></div>';
 		console.log(ModeBackground);
 	}
 
