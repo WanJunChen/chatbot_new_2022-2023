@@ -8,6 +8,8 @@ var fishNormal_ImageUrl = "/static/image/expression/normal/normal1.gif";
 var fishExpression_ImageUrl = "/static/image/expression/";
 var starPng_ImageUrl = "/static/image/star.png";
 var typingGif_ImageUrl = "/static/image/typing.gif";
+var TrainingRoom_ImageUrl = "../static/image/Background/TrainingRoom.jpg";
+var PlayingRoom_ImageUrl = "../static/image/Background/PlayingRoom.jpg";
 var res_data;
 var random_pitch;
 var voices = [];
@@ -538,6 +540,22 @@ function analyze_responseData(){
 	 	}
 	 }
 
+	 //存在問答遊戲模式，切換遊戲背景
+	if(res_data["session"]["params"].hasOwnProperty("game_mode")){
+		console.log("以選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
+		Background_Img = ''
+		Background_Style = '';
+		if (res_data["session"]["params"]["game_mode"] == "訓練場"){
+			Background_Img = TrainingRoom_ImageUrl
+		}
+		else if (res_data["session"]["params"]["game_mode"] == "競技場"){
+			Background_Img = PlayingRoom_ImageUrl
+		}
+		Background_Style = 'style = "position:absolute; width: 100%; height: 100%; top: 0; left: 0; background-position: bottom center; background-repeat: no-repeat; background-image: url('+ Background_Img +');"'
+		ModeBackground.innerHTML = '<div class="mode_background" id="mode_background" ' + Background_Style + '></div>'
+		console.log(ModeBackground);
+	}
+
 	/* Step2：顯示機器人回應 */
 	add_chatbotTalk();
 
@@ -688,6 +706,7 @@ window.onload = function(){
 	TalkSend = document.getElementById("talksend"); 
 	Suggestions = document.getElementById("talk_suggest_id"); 
 	TaskHints = document.getElementById("talk_taskHint_id"); 
+	ModeBackground = document.getElementById("mode_background");
 
 	// 目前使用裝置
 	if (bIsIpad || bIsIphoneOs || bIsMidp || bIsUc7 || bIsUc || bIsAndroid || bIsCE || bIsWM) {

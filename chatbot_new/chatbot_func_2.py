@@ -487,7 +487,7 @@ def SQuAD_gameMode(req):
     # 2022/11/14
     global studentName_dic
 
-    print("scene: 選擇訓練模式或驗收模式")
+    print("scene: 選擇訓練場或競技場")
     userClass = req['session']['params']['User_class']
     response = '你想玩哪種模式呢？'
     if userClass == 'DingBan':
@@ -499,78 +499,105 @@ def SQuAD_gameMode(req):
     studentName_dic = df.set_index('座號')['姓名'].to_dict()
     user_id = userClass + req['session']['params']['User_say'].replace('號', '')
     print('使用者：' + str(user_id))
-    connect()
-    find_user = {'User_id': user_id}
-    now_user = myUserSQuADList.find_one(find_user)
-    # 若沒有該使用者之資料，要先去幫機器人取名字
-    if now_user is None:
-        print(user_id, "無機器人資料")
-        response_dict = {
-            "prompt": {
-                "firstSimple": {
-                    "speech": [response],
-                    "text": [response],
-                    "delay": [2],
-                    "expression": "happy"
-                },
-                "suggestions": [{'title': '訓練場'},
-                                {'title': '競技場'}]
+    response_dict = {
+        "prompt": {
+            "firstSimple": {
+                "speech": [response],
+                "text": [response],
+                "delay": [2],
+                "expression": "happy"
             },
-            "scene": {
-                "next": {
-                    "name": "check_input"
-                }
-            },
-            "session": {
-                "params": {
-                    "User_id": user_id,
-                    "User_class": userClass,
-                    "NextScene": "SQuAD_Namechatbot"
-                }
+            "suggestions": [{'title': '訓練場'},
+                            {'title': '競技場'}]
+        },
+        "scene": {
+            "next": {
+                "name": "check_input"
+            }
+        },
+        "session": {
+            "params": {
+                "User_id": user_id,
+                "User_class": userClass,
+                "NextScene": "SQuAD_chatbotName"
             }
         }
-    # 該使用者有機器人資料，下一步直接問書名
-    else:
-        print(user_id, "已有機器人資料 機器人名稱:", now_user['QAChatbotData']['name'])
-        response_dict = {   
-            "prompt": {
-                "firstSimple": {
-                    "speech": [response],
-                    "text": [response],
-                    "delay": [2],
-                    "expression": "happy"
-                },
-                "suggestions": [{'title': '訓練場'},
-                                {'title': '競技場'}]
-            },
-            "scene": {
-                "next": {
-                    "name": "check_input"
-                }
-            },
-            "session": {
-                "params": {
-                    "User_id": user_id,
-                    "User_class": userClass,
-                    "NextScene": "Get_bookName"
-                }
-            }
-        }       
-        
+    }
+
     print(response)
     return response_dict
 
 # (訓練場)幫機器人取名
 # (競技場)直接跳轉到Get_bookName
-def SQuAD_Namechatbot(req):
+def SQuAD_chatbotName(req):
     userClass = req['session']['params']['User_class']
     user_id = req['session']['params']['User_id']
     gameMode = req['session']['params']['User_say']
-    response = ''
-    if gameMode == '訓練場':
-        print("scene: 幫機器人取名")
-        response = "這是我們第一次見面吧！我還沒有名字耶，可以請你給我一個名字嗎？"
-    
+    connect()
+    find_user = {'User_id': user_id}
+    now_user = myUserSQuADList.find_one(find_user)
+    response = ""
+    chatbotName = ""
+    response_dict = {}
+    if now_user is None:
+        print(user_id, "無chatbot資料")
+    else:
+        print(user_id, "有chatbot資料:", now_user['QAChatbotData']['name'])
+    if gameMode == "訓練場":
+        if now_user is None:
+            response = "這是我們第一次見面吧！我還沒有名字耶，可以請你給我一個名字嗎？"
+            response_dict = {
+                "prompt": {
+                    "firstSimple": {
+                        "speech": [response],
+                        "text": [response],
+                        "delay": [2],
+                        "expression": "happy"
+                    }
+                },
+                "scene": {
+                    "next": {
+                        "name": "check_input"
+                    }
+                },
+                "session": {
+                    "params": {
+                        "User_id": user_id,
+                        "User_class": userClass,
+                        "NextScene": "Get_bookName",
+                        "game_mode": gameMode,
+                        "fisrt_nameChatbot": True
+                    }
+                }
+            }
+        else:
+            chatbotName = now_user['QAChatbotData']['name']
+            response = "哈囉，我是" + chatbotName + "！你準備好要開始了嗎？"
+            response_dict = {
+                "prompt": {
+                    "firstSimple": {
+                        "speech": [response],
+                        "text": [response],
+                        "delay": [2],
+                        "expression": "happy"
+                    }
+                },
+                "scene": {
+                    "next": {
+                        "name": "check_input"
+                    }
+                },
+                "session": {
+                    "params": {
+                        "User_id": user_id,
+                        "User_class": userClass,
+                        "NextScene": "Get_bookName",
+                        "game_mode": gameMode
+                    }
+                }
+            }
+    elif gameMode == "競技場":
+        response = "歡迎來到競技場！你準備好要開始了嗎？"
         response_dict = {
             "prompt": {
                 "firstSimple": {
@@ -594,11 +621,7 @@ def SQuAD_Namechatbot(req):
                 }
             }
         }
-    elif gameMode == '競技場':
-        print("scene: 進入競技場")
-        # req['session']['params']['game_mode'] = gameMode
-        # 不用取名，直接去競技場玩
-        Get_bookName(req)
+    
     print(response)
     return response_dict
 
@@ -708,15 +731,13 @@ def Get_bookName(req):
                 }
             }
     elif chatMode == "QA":
-        # 從 SQuAD_Namechatbot 過來
-        if 'game_mode' in req['session']['params'].keys():
-            gameMode = req['session']['params']['game_mode']
-        # 從 SQuAD_gameMode 過來
-        else:
-            gameMode = req['session']['params']['User_say']
+        gameMode = req['session']['params']['game_mode']
         user_id = req['session']['params']['User_id']
-        userSay = req['session']['params']['User_say']
         response = ''
+        userSay = req['session']['params']['User_say']
+        # if 'fisrt_nameChatbot' in req['session']['params'].keys():
+        #     if req['session']['params']['fisrt_nameChatbot'] == True:
+        #         userSay = req['session']['params']['User_say']
 
         if gameMode == '訓練場':
             find_user = {'User_id': user_id}
@@ -726,11 +747,7 @@ def Get_bookName(req):
                 # 直接新增一筆
                 mydict = {'User_id': user_id, 'QAChatbotData': {'name': userSay}}
                 myUserSQuADList.insert_one(mydict)
-                chatbotName = userSay
-            # 該使用者有機器人資料
-            else:
-                chatbotName = user_result['QAChatbotData']['name']
-            response += '哈囉，我是' + chatbotName + "！<br>"
+                response += "從現在起，我就叫做" + userSay + "了喔。"
 
         # 2022/11/08
         find_condition = {'type': 'common_check_book'}
@@ -1050,44 +1067,6 @@ def match_book(req):
                     }
 
                 Prompt_list.pop(0)
-            # elif chatMode == 'QA':   #不使用
-            #     # 2022/11/03
-
-            #     state = False
-            #     # 建立使用者資料
-            #     player = req['user']['player']
-            #     user_id = req['session']['params']['User_id']
-            #     connectDB.updateUser(myUserList, user_id, bookName, state, "None")
-            #     response_dict = {
-            #         "prompt": {
-            #             "firstSimple": {
-            #                 "speech": [response],
-            #                 "text": [response],
-            #                 "delay": [2],
-            #                 "expression": "happy"
-            #             }
-            #         },
-            #         "session": {
-            #             "params": {
-            #                 "User_id": user_id,
-            #                 "User_book": bookName,
-            #                 "User_say": userSay,
-            #                 "dialog_count": 0,
-            #                 "sentence_id": [],
-            #                 "noIdea_count": 0,
-            #                 "question_count": 0,
-            #                 "User_say_len": [],
-            #                 "dialog_count_limit": 3
-            #             }
-            #         },
-            #         "scene": {
-            #             "next": {
-            #                 'name': 'Prompt_SQuAD'
-            #             }
-            #         }
-            #     }
-
-
         else:
             first_match = True
             second_check = True
