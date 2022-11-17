@@ -62,7 +62,7 @@
 	height:850px;
 	border:1px solid #666;
 	margin:50px auto 0;
-	background:#f9f9f9;
+	background: rgba(249,249,249,0.7);
 	border-radius: 20px;
   background-image: url("/static/image/600.jpg");
   background-size: 90%;
