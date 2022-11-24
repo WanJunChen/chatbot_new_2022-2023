@@ -144,8 +144,8 @@ function add_chatbotTalk(){
 				console.log("重複清空")
 			}
 			// 當機器人用SQuAD生成答案時直接pushtext(不需要setTimeout來等待)
-			if(session['params']['NextScene'] == 'SQuAD_get_Ans'){
-				if(i ==0 ){
+			if(session['params']['NextScene'] == 'SQuAD_get_Ans' && session['params']['Via_SQuAD'] == true){
+				if(i == 0 ){
 					console.log("i=0")							
 					pushtext(i);
 				}
@@ -212,13 +212,6 @@ function add_chatbotTalk(){
 	}
 };
 function pushtext(N){
-	if(chatbotWords_last == chatbotWords[N]){
-        chatbotWords[N] = "";
-        chatbotWords_speech[N] = ""; 
-        console.log("重複清空");
-        // setTimeout(function(){show_chatbotTyping();},1000)  // 暫時註解
-	            
-  	}	
 	if (chatbotWords_last == chatbotWords[N] ){
 		chatbotWords[N]= "";
 		chatbotWords_speech[N]="";
