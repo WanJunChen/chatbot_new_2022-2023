@@ -642,7 +642,16 @@ function analyze_responseData(){
 		 	}
 		}	 	
 	}
+
+	// 將魚姐姐圖片轉換成機器人圖片
+	if(res_data.hasOwnProperty("session")){
+		if(res_data["session"]["params"].hasOwnProperty("chatbotName")){
+			document.getElementById("fish").src = "/static/image/expression/00.png"         
+		}
+
+	}
 }
+
 
 // 改變機器人表情
 function change_chatbotMood(){

@@ -608,7 +608,7 @@ def SQuAD_chatbotName(req):
         # 名詞的時候，要把那個詞打成英文喔！<br>我說完了，
         response = "歡迎來到競技場！你今天想看看哪個機器人呢？"
         button_item = []
-        
+
         for UserChatbot in myUserSQuADList.find():
             if UserChatbot['User_id'] != user_id:
                 button_item.append({'title': UserChatbot['QAChatbotData']['name']})
