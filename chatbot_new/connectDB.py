@@ -46,7 +46,7 @@ def addFeedback(feedbackList, userId, sentiment, feedback):
     feedbackList.insert_one(mydict)
     print(mydict)
 
-def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion_Ans, time):
+def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion_Ans, page_list, reason, time):
 
     find_user = {'User_id': speaker_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
@@ -58,7 +58,7 @@ def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion
     else:
         QA_id = len(now_Knowledgebase[dbBookName])
         
-    mydict = {'Question': question, 'Answer': suggestion_Ans, 'time': time}
-    userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName][str(QA_id)] = mydict
+    mydict = {'Question': question, 'Answer': suggestion_Ans, 'pages': page_list, 'reason': reason, 'time': time}
 
+    userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName][str(QA_id)] = mydict
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})

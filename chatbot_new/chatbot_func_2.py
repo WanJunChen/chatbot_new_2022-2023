@@ -571,8 +571,12 @@ def SQuAD_chatbotName(req):
                 }
             }
         else:
+            # <br>選好書後，你就可以問我關於這本書的所有問題，有些問題我可能答不出來，
+            # 那就要請聰明的你教教我了。切記，當你的問題中提到專有名詞的時候，要把那個
+            # 詞打成英文喔！<br>我說完了，
+
             chatbotName = now_user['QAChatbotData']['name']
-            response = "哈囉，我是" + chatbotName + "，歡迎來到訓練場！<br>選好書後，你就可以問我關於這本書的所有問題，有些問題我可能答不出來，那就要請聰明的你教教我了。切記，當你的問題中提到專有名詞的時候，要把那個詞打成英文喔！<br>我說完了，你準備好要開始了嗎？"
+            response = "哈囉，我是" + chatbotName + "，歡迎來到訓練場！你準備好要開始了嗎？"
             response_dict = {
                 "prompt": {
                     "firstSimple": {
@@ -598,7 +602,10 @@ def SQuAD_chatbotName(req):
                 }
             }
     elif gameMode == "競技場":
-        response = "歡迎來到競技場！<br>下面有很多個機器人的名字，選好機器人和書之後，你就可以問他關於這本書的所有問題，如果他答對了，你就按下正確，如果他答錯了，你就按下錯誤喔！切記，當你的問題中提到專有名詞的時候，要把那個詞打成英文喔！<br>我說完了，你今天想看看哪個機器人呢？"
+        # <br>下面有很多個機器人的名字，選好機器人和書之後，你就可以問他關於這本書的所有問題，
+        # 如果他答對了，你就按下正確，如果他答錯了，你就按下錯誤喔！切記，當你的問題中提到專有
+        # 名詞的時候，要把那個詞打成英文喔！<br>我說完了，
+        response = "歡迎來到競技場！你今天想看看哪個機器人呢？"
         button_item = []
         for UserChatbot in myUserSQuADList.find():
             if UserChatbot['User_id'] != user_id:
@@ -1163,8 +1170,6 @@ def Prompt_SQuAD(req):
     print(response)
     return response_dict
 
-
-
 def SQuAD_get_Ans(req):
     print('scene: (SQuAD)生成答案')
 
@@ -1304,12 +1309,13 @@ def SQuAD_chatbot_Reply(req):
     response = ""
     nextScene = ""
     ask_for_Ans = False
+    # 當學生提出問句的建議解答後
     if req['session']['params']['ask_for_Ans'] == True:
-        response = "謝謝你告訴我答案，你可以繼續問我問題了！"
+        response = "為什麼答案是「" + userSay + "」呀？"
         ask_for_Ans = False
         print("學生問題:", UserQuestion, "學生建議答案:", userSay)
-        connectDB.addKnowledgebaseData(myUserSQuADList, dbBookName, user_id, UserQuestion, userSay, time)
-        nextScene = "SQuAD_get_Ans"
+        nextScene = "SQuAD_get_Reason"
+    # 機器人回答學生的問句，然後學生按下正確\錯誤鍵後
     else:
         if userSay == "正確":
             response = "太好了，你可以繼續問我問題囉！"
@@ -1327,7 +1333,6 @@ def SQuAD_chatbot_Reply(req):
 
     
     # 記錄對話
-    
     myDialogList = nowBook['QA_Dialog']
     dialog_index = myDialogList.find().count()
     dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
@@ -1353,7 +1358,8 @@ def SQuAD_chatbot_Reply(req):
         "session": {
             "params": {
                 "User_id": user_id,
-                "User_say": userSay,
+                "User_question": UserQuestion,
+                "User_ans": userSay,
                 "User_book": bookName,
                 "Via_SQuAD": False,
                 "ask_for_Ans": ask_for_Ans
@@ -1362,6 +1368,129 @@ def SQuAD_chatbot_Reply(req):
     }
     print(response)
     return response_dict
+
+
+# 詢問使用者此答案的原因
+def SQuAD_get_Reason(req):
+    session_id = req['session']['id']
+    time = req['user']['lastSeenTime']
+    user_id = req['session']['params']['User_id']
+    userSay = req['intent']['query']
+    UserQuestion = req['session']['params']['User_question']
+    UserAns = req['session']['params']['User_ans']
+    chatbotName = req['session']['params']['chatbotName']
+    bookName = req['session']['params']['User_book']
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+    response = "原來是這樣，這部分在故事的哪一頁呢？<br>(如果包含不只一頁，請用空格隔開喔！例如：13 19 21)"
+    
+    # 記錄對話
+    myDialogList = nowBook['QA_Dialog']
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
+    connectDB.addDialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
+    
+    response_dict = {
+        "prompt": {
+            "firstSimple": {
+                "speech": [response],
+                "text": [response],
+                "delay": [2]
+            }
+        },
+        "params": {
+            "NextScene": "SQuAD_get_Page"
+        },
+        "scene": {
+            "next": {
+                'name': "SQuAD_get_Page"
+            }
+        },
+        "session": {
+            "params": {
+                "User_id": user_id,
+                "User_question": UserQuestion,
+                "User_ans": UserAns,
+                "User_reason": userSay,
+                "User_book": bookName
+            }
+        },
+    }
+
+    print(response)
+    return response_dict
+
+# 詢問使用者此答案在哪一頁
+def SQuAD_get_Page(req):
+    session_id = req['session']['id']
+    time = req['user']['lastSeenTime']
+    time = req['user']['lastSeenTime']
+    user_id = req['session']['params']['User_id']
+    userSay = req['intent']['query']
+    chatbotName = req['session']['params']['chatbotName']
+    UserQuestion = req['session']['params']['User_question']
+    UserAns = req['session']['params']['User_ans']
+    UserReason = req['session']['params']['User_reason']
+    bookName = req['session']['params']['User_book']
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+
+
+    userSay_replace = userSay.replace("第", "").replace("頁", "")
+    response = "第"
+    page_list = userSay_replace.split()
+    for i in range(len(page_list)):
+        if i != 0:
+            response += "、"
+        response += page_list[i]
+    response += "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
+    
+    try:
+        page_list = list(map(int, page_list))
+        nextScene = "SQuAD_get_Ans"
+        # 將問句、建議答案、頁數及原因存入知識庫
+        connectDB.addKnowledgebaseData(myUserSQuADList, dbBookName, user_id, UserQuestion, UserAns, page_list, UserReason, time)
+    except:
+        response = "請輸入阿拉伯數字喔"
+        nextScene = "SQuAD_get_Page"
+    
+    
+    # 記錄對話
+    myDialogList = nowBook['QA_Dialog']
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
+    connectDB.addDialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
+
+
+    response_dict = {
+        "prompt": {
+            "firstSimple": {
+                "speech": [response],
+                "text": [response],
+                "delay": [2]
+            }
+        },
+        "params": {
+            "NextScene": "SQuAD_get_Ans"
+        },
+        "scene": {
+            "next": {
+                'name': nextScene
+            }
+        },
+        "session": {
+            "params": {
+                "User_id": user_id,
+                "User_book": bookName
+            }
+        },
+    }
+
+    print(response)
+    return response_dict
+
 
 # 角色引導
 def Prompt_character(req):
