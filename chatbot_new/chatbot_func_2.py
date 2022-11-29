@@ -1297,6 +1297,7 @@ def SQuAD_chatbot_Reply(req):
     userSay = req['intent']['query']
     UserQuestion = req['session']['params']['User_question']
     chatbotName = req['session']['params']['chatbotName']
+    gameMode = req['session']['params']['game_mode']
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
@@ -1315,9 +1316,15 @@ def SQuAD_chatbot_Reply(req):
             ask_for_Ans = False
             nextScene = "SQuAD_get_Ans"
         elif userSay == "錯誤" :
-            response = "我的答案竟然是錯的，那你可以教教我正確答案是什麼嗎？"
-            ask_for_Ans = True
-            nextScene = "SQuAD_chatbot_Reply"
+            if gameMode == "訓練場":
+                response = "我的答案竟然是錯的，那你可以教教我正確答案是什麼嗎？"
+                ask_for_Ans = True
+                nextScene = "SQuAD_chatbot_Reply"
+            elif gameMode == "競技場":
+                response = "我的答案竟然是錯的，真可惜，你考考其他的問題吧。"
+                ask_for_Ans = False
+                nextScene = "SQuAD_get_Ans"
+
     
     # 記錄對話
     
