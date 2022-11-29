@@ -584,7 +584,8 @@ def SQuAD_chatbotName(req):
                         "text": [response],
                         "delay": [2],
                         "expression": "happy"
-                    }
+                    },
+                    "suggestions": [{'title': '好'}]
                 },
                 "scene": {
                     "next": {
@@ -607,6 +608,7 @@ def SQuAD_chatbotName(req):
         # 名詞的時候，要把那個詞打成英文喔！<br>我說完了，
         response = "歡迎來到競技場！你今天想看看哪個機器人呢？"
         button_item = []
+        
         for UserChatbot in myUserSQuADList.find():
             if UserChatbot['User_id'] != user_id:
                 button_item.append({'title': UserChatbot['QAChatbotData']['name']})
@@ -1136,6 +1138,11 @@ def Prompt_SQuAD(req):
     find_common = {'type': 'common_accept_question'}
     find_common_result = myCommonList.find_one(find_common)
     response = choice(find_common_result['content'])+"<br>(請在下方輸入你的問題)"
+
+    # 思考中的通用句
+    find_common = {'type': 'common_thinking'}
+    find_common_result = myCommonList.find_one(find_common)
+    thinking_word = choice(find_common_result['content'])
     
     dialog_index = myDialogList.find().count()
     if dialog_index == 0:
@@ -1163,7 +1170,8 @@ def Prompt_SQuAD(req):
                 "params": {
                     "User_book": bookName,
                     "NowScene": "Prompt_SQuAD",
-                    "NextScene": "SQuAD_get_Ans"
+                    "NextScene": "SQuAD_get_Ans",
+                    "thinking_word": thinking_word
                 }
             }
         }
@@ -1182,7 +1190,7 @@ def SQuAD_get_Ans(req):
     gameMode = req['session']['params']['game_mode']
     button_item = [{'title': '正確'},
                    {'title': '錯誤'}]
-
+    response = ""
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     
@@ -1197,7 +1205,7 @@ def SQuAD_get_Ans(req):
     # 思考中的通用句
     find_common = {'type': 'common_thinking'}
     find_common_result = myCommonList.find_one(find_common)
-    response = choice(find_common_result['content'])
+    thinking_word = choice(find_common_result['content'])
     # 若SQuAD機器人知道答案的通用句
     find_common = {'type': 'common_answer_T'}
     find_common_result_answerT = myCommonList.find_one(find_common)
@@ -1253,7 +1261,7 @@ def SQuAD_get_Ans(req):
             }
         },
         "params": {
-            "NextScene": "Prompt_response"
+            "NextScene": "SQuAD_get_Ans"
         },
         "scene": {
             "next": {
@@ -1267,7 +1275,8 @@ def SQuAD_get_Ans(req):
                 "User_book": bookName,
                 "Via_SQuAD": Via_SQuAD,
                 "Exist_Ans": Exist_Ans,
-                "ask_for_Ans": False
+                "ask_for_Ans": False,
+                "thinking_word": thinking_word
             }
         },
     }
@@ -1309,6 +1318,12 @@ def SQuAD_chatbot_Reply(req):
     response = ""
     nextScene = ""
     ask_for_Ans = False
+
+    # 思考中的通用句
+    find_common = {'type': 'common_thinking'}
+    find_common_result = myCommonList.find_one(find_common)
+    thinking_word = choice(find_common_result['content'])
+
     # 當學生提出問句的建議解答後
     if req['session']['params']['ask_for_Ans'] == True:
         response = "為什麼答案是「" + userSay + "」呀？"
@@ -1362,7 +1377,8 @@ def SQuAD_chatbot_Reply(req):
                 "User_ans": userSay,
                 "User_book": bookName,
                 "Via_SQuAD": False,
-                "ask_for_Ans": ask_for_Ans
+                "ask_for_Ans": ask_for_Ans,
+                "thinking_word": thinking_word
             }
         },
     }
@@ -1383,6 +1399,7 @@ def SQuAD_get_Reason(req):
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     response = "原來是這樣，這部分在故事的哪一頁呢？<br>(如果包含不只一頁，請用空格隔開喔！例如：13 19 21)"
+    
     
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
@@ -1455,6 +1472,10 @@ def SQuAD_get_Page(req):
         response = "請輸入阿拉伯數字喔"
         nextScene = "SQuAD_get_Page"
     
+    # 思考中的通用句
+    find_common = {'type': 'common_thinking'}
+    find_common_result = myCommonList.find_one(find_common)
+    thinking_word = choice(find_common_result['content'])
     
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
@@ -1483,7 +1504,8 @@ def SQuAD_get_Page(req):
         "session": {
             "params": {
                 "User_id": user_id,
-                "User_book": bookName
+                "User_book": bookName,
+                "thinking_word": thinking_word
             }
         },
     }

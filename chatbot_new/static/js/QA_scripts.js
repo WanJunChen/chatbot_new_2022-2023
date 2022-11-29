@@ -395,9 +395,18 @@ function clear_taskHint() {
 // 顯示機器人輸入中
 function show_chatbotTyping(){
 	
-	var chatbotStr = "";
+	var chatbotStr = '<div class="dialog-bottom"><div class="top">';
 
-	chatbotStr += '<div class="dialog-bottom"><div class="top"><img class="typing" src ='+ typingGif_ImageUrl +' width="50" height="13"></div></div>'
+	// 如果在等待機器人回答問題時，加入思考通用句
+	if(res_data != null){
+		if(res_data.hasOwnProperty("scene") && res_data["session"]["params"].hasOwnProperty("thinking_word")){
+			if(res_data['scene']['next']['name'] == "SQuAD_get_Ans" && res_data["session"]["params"].hasOwnProperty("thinking_word"))
+				if (res_data["session"]["params"]['thinking_word'] != "") {
+					chatbotStr += res_data["session"]["params"]['thinking_word'] + '<br>';
+				}
+		}
+	}
+	chatbotStr += '<img class="typing" src ='+ typingGif_ImageUrl +' width="50" height="13"></div></div>'
 	Botsay.innerHTML = chatbotStr;
 	//Words.innerHTML = Words.innerHTML + chatbotStr;
 	Words.scrollTop = Words.scrollHeight;	
