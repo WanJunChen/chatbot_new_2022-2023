@@ -64,7 +64,7 @@
 	margin:50px auto 0;
 	background: rgba(249,249,249,0.7);
 	border-radius: 20px;
-  background-image: url("/static/image/600.jpg");
+  /* background-image: url("/static/image/600.jpg"); */
   background-size: 90%;
   background-position: top center  ;
   background-repeat: no-repeat;
@@ -413,7 +413,7 @@ body {
   background-size: 50%;
   background-position: bottom center;
   background-repeat: no-repeat; */
-  background-image: linear-gradient(45deg, rgba(9, 12, 42, 0.9), rgba(116, 57, 141, 0.8)), url("https://lh3.googleusercontent.com/proxy/CWOJoLUSNHrjjLNrJp5BKjovOrhcb_wL8k86B7lvhwemto5XVx-LVBWlp08T1Yj9Ggj6BLTZYKF4e8vcjT1GNzc-qHnEv6UK-V0UIVMsJGPczSgw6hDdQuKEujI2KtKQ_suwJYjBGxhLEU2sk_olATk8wF5jL8p8sqnOPVuQLqM0aWBsFd14");
+  background-image: linear-gradient(45deg, rgba(9, 12, 42, 0.9), rgba(116, 57, 141, 0.8));
   
   /* https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1353&q=80*/
   background-size: cover;
