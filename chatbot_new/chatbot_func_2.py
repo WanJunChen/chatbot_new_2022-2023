@@ -808,7 +808,6 @@ def Get_bookName(req):
     print(response)
     return response_dict
 
-
 # 根據相似度比對結果顯示書名選項給使用者直接點選
 def match_book(req):
     print('scene: 比對書名')
@@ -1121,7 +1120,6 @@ def match_book(req):
     print(response)
     return response_dict
 
-
 # 2022/11/02
 # 引導使用者向機器人問問題
 def Prompt_SQuAD(req):
@@ -1138,11 +1136,6 @@ def Prompt_SQuAD(req):
     find_common = {'type': 'common_accept_question'}
     find_common_result = myCommonList.find_one(find_common)
     response = choice(find_common_result['content'])+"<br>(請在下方輸入你的問題)"
-
-    # 思考中的通用句
-    find_common = {'type': 'common_thinking'}
-    find_common_result = myCommonList.find_one(find_common)
-    thinking_word = choice(find_common_result['content'])
     
     dialog_index = myDialogList.find().count()
     if dialog_index == 0:
@@ -1163,14 +1156,72 @@ def Prompt_SQuAD(req):
             },
             "scene": {
                 "next": {
-                    "name": "SQuAD_get_Ans"
+                    "name": "SQuAD_get_Type"
                 }
             },
             "session": {
                 "params": {
                     "User_book": bookName,
                     "NowScene": "Prompt_SQuAD",
+                    "NextScene": "SQuAD_get_Type"
+                }
+            }
+        }
+    print(response)
+    return response_dict
+
+def SQuAD_get_Type(req):
+    print('scene:  (SQuAD)詢問4F的問句類型')
+    session_id = req['session']['id']
+    user_id = req['session']['params']['User_id']
+    time = req['user']['lastSeenTime']
+    userSay = req['intent']['query']
+    chatbotName = req['session']['params']['chatbotName']
+    bookName = req['session']['params']['User_book']
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    nowBook = myClient[dbBookName]
+    myDialogList = nowBook['QA_Dialog']
+    response = '你的這個問題「XXX」是哪一類的問題呢？'
+    response = response.replace('XXX', userSay)
+    button_item = [{'title': '故事中的現象'},
+                   {'title': '我的感受'},
+                   {'title': '為什麼'},
+                   {'title': '應該怎麼做'}]
+
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+
+    # 記錄對話過程
+    if len(userSay) > 0:
+        connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
+        connectDB.addDialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
+    
+    # 思考中的通用句
+    find_common = {'type': 'common_thinking'}
+    find_common_result = myCommonList.find_one(find_common)
+    thinking_word = '好喔！' + choice(find_common_result['content'])
+
+    response_dict = {
+            "prompt": {
+                "firstSimple": {
+                    "speech": [response],
+                    "text": [response],
+                    "delay": [2],
+                    "expression": "happy"
+                },
+                "suggestions": button_item
+            },
+            "scene": {
+                "next": {
+                    "name": "SQuAD_get_Ans"
+                }
+            },
+            "session": {
+                "params": {
+                    "User_book": bookName,
+                    "NowScene": "SQuAD_get_Type",
                     "NextScene": "SQuAD_get_Ans",
+                    "User_question": userSay,
                     "thinking_word": thinking_word
                 }
             }
@@ -1185,7 +1236,8 @@ def SQuAD_get_Ans(req):
     time = req['user']['lastSeenTime']
     bookName = req['session']['params']['User_book']
     user_id = req['session']['params']['User_id']
-    userSay = req['intent']['query']
+    userInput = req['intent']['query']
+    UserQuestion = req['session']['params']['User_question']
     chatbotName = req['session']['params']['chatbotName']
     gameMode = req['session']['params']['game_mode']
     button_item = [{'title': '正確'},
@@ -1193,14 +1245,20 @@ def SQuAD_get_Ans(req):
     response = ""
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
-    
-    # 記錄對話過程
     myDialogList = nowBook['QA_Dialog']
-    dialog_index = myDialogList.find().count()
-    if len(userSay) > 0:
-        dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
-        connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
 
+    dialog_index = myDialogList.find().count()
+    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
+    connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userInput, time, session_id, req['scene']['name'])
+
+    Question_4F = { 'Fact'      :'故事中的現象',
+                    'Feeling'   :'我的感受',
+                    'Finding'   :'為什麼',
+                    'Future'    :'應該怎麼做'}
+    for key, value in Question_4F.items():
+        if userInput == value:
+            question_type = key
+    
     # 「回答」的通用句
     # 思考中的通用句
     find_common = {'type': 'common_thinking'}
@@ -1222,7 +1280,7 @@ def SQuAD_get_Ans(req):
     Exist_Ans = False
     print("http://127.0.0.1:4220/squad_getBook :", Check)
     if Check:
-        SQuAD_Ans = Get_squadAnswer.get_squadAnswer(userSay, False)
+        SQuAD_Ans = Get_squadAnswer.get_squadAnswer(UserQuestion, False)
         if SQuAD_Ans == None:
             # 沒有透過SQuAD
             Via_SQuAD = False
@@ -1250,8 +1308,8 @@ def SQuAD_get_Ans(req):
         # 待完成:若學生有輸入過他認為的答案，就以學生先前教機器人的答案作為回復
 
     # 記錄對話過程
-    dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
-    connectDB.addDialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
+    connectDB.addDialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, req['session']['params']['thinking_word'], time, session_id, req['scene']['name'])
+    connectDB.addDialog(myDialogList, dialog_id + 2, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
     response_dict = {
         "prompt": {
             "firstSimple": {
@@ -1271,7 +1329,8 @@ def SQuAD_get_Ans(req):
         "session": {
             "params": {
                 "User_id": user_id,
-                "User_question": userSay,
+                # "User_question": UserQuestion,
+                "question_type": question_type,
                 "User_book": bookName,
                 "Via_SQuAD": Via_SQuAD,
                 "Exist_Ans": Exist_Ans,
@@ -1385,7 +1444,6 @@ def SQuAD_chatbot_Reply(req):
     print(response)
     return response_dict
 
-
 # 詢問使用者此答案的原因
 def SQuAD_get_Reason(req):
     session_id = req['session']['id']
@@ -1438,7 +1496,7 @@ def SQuAD_get_Reason(req):
     print(response)
     return response_dict
 
-# 詢問使用者此答案在哪一頁
+# 詢問使用者此答案的頁數(只有Fact和Finding的問句才問)
 def SQuAD_get_Page(req):
     session_id = req['session']['id']
     time = req['user']['lastSeenTime']
