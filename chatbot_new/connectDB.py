@@ -50,15 +50,6 @@ def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion
 
     find_user = {'User_id': speaker_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    
-    now_Knowledgebase = userSQuAD_result["QAChatbotData"]["Knowledgebase"]
-    if dbBookName not in now_Knowledgebase.keys():
-        QA_id = 0
-        userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName] = []
-    else:
-        QA_id = len(now_Knowledgebase[dbBookName])
-        
     mydict = {'Question': question, 'Answer': suggestion_Ans, 'pages': page_list, 'reason': reason, 'time': time}
-
     userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName].append(mydict)
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
