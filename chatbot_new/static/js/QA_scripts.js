@@ -34,6 +34,7 @@ var suggest_exist = 0;
 // 心情變數 PA
 var CE_P=0;
 var CE_A=0;
+var selected_page = []
 
 // 使用者輸入訊息
 function user_inputPress() {
@@ -47,7 +48,6 @@ function user_inputPress() {
 
 // 使用者確定發送訊息
 function user_sendMsg(Object) {
-	
 	// 終止語音
 	window.speechSynthesis.cancel();
 
@@ -55,9 +55,21 @@ function user_sendMsg(Object) {
 	speech_chatbotTalk(" ");
 
 	// 判斷使用者發送方式
-	if(Object.value == undefined){
+	if(Object.value == undefined && session['params']['NextScene'] != "SQuAD_get_Page"){
 		// 輸入文字方式
 		add_userTalk(TalkWords.value);
+	}
+	else if (session['params']['NextScene'] == "SQuAD_get_Page"){
+		// 建議文字紐(多選)方式
+
+		// 對已選取的頁數進行排序
+		selected_page.sort(function(a, b) {
+			return a - b;
+		});
+		console.log("Page:", selected_page);
+		add_userTalk(selected_page);
+		TalkWords.value = selected_page;
+		selected_page.length = 0;
 	}
 	else{
 		// 建議文字紐方式
@@ -81,6 +93,15 @@ function user_sendMsg(Object) {
 	show_chatbotTyping();  // 暫時加的
 	// 清空輸入值
 	TalkWords.value = "";
+}
+
+function user_sendPages(Object){
+	if(selected_page.includes(Object.value)){
+		selected_page.splice(selected_page.indexOf(Object.value), 1)
+	}
+	else{
+		selected_page.push(Object.value)
+	}
 }
 
 // 加入使用者對話訊息
@@ -313,6 +334,22 @@ function show_suggestList(){
 	for(var i = 0; i < suggest_arr.length; i++){
 		suggestionStr += '<button class="suggest_Btn" onclick="user_sendMsg(this)"  value=' + suggest_arr[i] + '>' + suggest_arr[i] + '</button>'
 	}
+	
+	// 詢問頁數時，要給使用者多選的按鈕
+	if(res_data != null){
+		if(res_data.hasOwnProperty("scene")){
+			if(res_data['scene']['next']['name'] == "SQuAD_get_Page"){
+				suggestionStr = '<div class="suggest_Checkbox">';
+				for(var i = 0; i < suggest_arr.length; i++){
+					suggestionStr += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + suggest_arr[i] + ' /><span class="round button">' + suggest_arr[i] + '</span></label>'
+					if (i == parseInt(suggest_arr.length/2)){
+						suggestionStr += '<br>'
+					}
+				}
+				suggestionStr += '</div>'
+			}
+		}
+	}
 	//20210915
 	Suggestions.innerHTML = suggestionStr
 	document.getElementById("talk_suggest_id").style.visibility = "visible";
@@ -541,8 +578,8 @@ function analyze_responseData(){
 		clear_suggestList();
 		for(var item_suggest in res_data["prompt"]["suggestions"]){ 		
  		 	suggest_arr[item_suggest] = res_data["prompt"]["suggestions"][item_suggest]["title"]
- 		 	console.log(res_data["prompt"]["suggestions"])
  		}
+		console.log(res_data["prompt"]["suggestions"])
  		suggest_exist = 1;
  		show_suggestList();
  	}
@@ -560,31 +597,33 @@ function analyze_responseData(){
 	 	}
 	 	else{
 	 		clear_taskHint();
-	 	}
+	 	} 
+
+		//存在問答遊戲模式，切換遊戲背景
+		if(res_data["session"]["params"].hasOwnProperty("game_mode")){
+			console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
+			Background_Img = '';
+			Background_Style = '';
+			Mode_Words = '';
+			WordBG_color = ''
+			if (res_data["session"]["params"]["game_mode"] == "訓練場"){
+				Background_Img = TrainingRoom_ImageUrl;
+				WordBG_color = "#302b40";
+			}
+			else if (res_data["session"]["params"]["game_mode"] == "競技場"){
+				Background_Img = PlayingRoom_ImageUrl;
+				WordBG_color = "#00bfbe";
+			}
+			Mode_Words = '<div style="width: 160px; height: 40px; padding: 10px 10px; font-size: 30px; font-family: 微軟正黑體; font-weight: bold; color: white; text-align: center; border-radius: 20px; background-color: ' + WordBG_color + ';">'
+							+ res_data["session"]["params"]["game_mode"]
+							+ '</div>';
+			Background_Style = 'style = "width: 720px; height: 950px; margin: 0px; background-position: bottom center; background-repeat: no-repeat; background-size: contain; background-image: url('+ Background_Img +');"'
+			ModeBackground.innerHTML = '<div ' + Background_Style + '><center>' + Mode_Words + '</center></div>';
+			console.log(ModeBackground);
+		}
 	 }
 
-	 //存在問答遊戲模式，切換遊戲背景
-	if(res_data["session"]["params"].hasOwnProperty("game_mode")){
-		console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
-		Background_Img = '';
-		Background_Style = '';
-		Mode_Words = '';
-		WordBG_color = ''
-		if (res_data["session"]["params"]["game_mode"] == "訓練場"){
-			Background_Img = TrainingRoom_ImageUrl;
-			WordBG_color = "#302b40";
-		}
-		else if (res_data["session"]["params"]["game_mode"] == "競技場"){
-			Background_Img = PlayingRoom_ImageUrl;
-			WordBG_color = "#00bfbe";
-		}
-		Mode_Words = '<div style="width: 160px; height: 40px; padding: 10px 10px; font-size: 30px; font-family: 微軟正黑體; font-weight: bold; color: white; text-align: center; border-radius: 20px; background-color: ' + WordBG_color + ';">'
-						+ res_data["session"]["params"]["game_mode"]
-						+ '</div>';
-		Background_Style = 'style = "width: 720px; height: 950px; margin: 0px; background-position: bottom center; background-repeat: no-repeat; background-size: contain; background-image: url('+ Background_Img +');"'
-		ModeBackground.innerHTML = '<div ' + Background_Style + '><center>' + Mode_Words + '</center></div>';
-		console.log(ModeBackground);
-	}
+	
 
 	/* Step2：顯示機器人回應 */
 	add_chatbotTalk();
