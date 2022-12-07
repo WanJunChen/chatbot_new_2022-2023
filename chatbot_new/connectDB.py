@@ -56,5 +56,13 @@ def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion
                 'pages': page_list,
                 '4F_type': question4F,
                 'time': time}
+    if reason == -1:
+        del mydict['reason']
+    if page_list == -1:
+        del mydict['pages']
+
+    if dbBookName not in userSQuAD_result["QAChatbotData"]["Knowledgebase"].keys():
+        userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName] = []
+
     userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName].append(mydict)
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})

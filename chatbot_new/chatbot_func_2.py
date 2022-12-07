@@ -751,7 +751,7 @@ def Get_bookName(req):
         gameMode = req['session']['params']['game_mode']
         user_id = req['session']['params']['User_id']
         response = ''
-        userSay = req['session']['params']['User_say']
+        userSay = req['intent']['query']
 
         if gameMode == '訓練場':
             find_user = {'User_id': user_id}
@@ -1322,11 +1322,11 @@ def SQuAD_get_Ans(req):
             }
         },
         "params": {
-            "NextScene": "SQuAD_get_Ans"
+            "NextScene": "SQuAD_get_Type"
         },
         "scene": {
             "next": {
-                'name': 'SQuAD_get_Ans'
+                'name': 'SQuAD_get_Type'
             }
         },
         "session": {
@@ -1338,7 +1338,7 @@ def SQuAD_get_Ans(req):
                 "Exist_Ans": Exist_Ans,
                 "ask_for_Ans": False,
                 "thinking_word": thinking_word,
-                "NextScene": "SQuAD_get_Ans"
+                "NextScene": "SQuAD_get_Type"
             }
         },
     }
@@ -1368,9 +1368,9 @@ def SQuAD_get_Ans(req):
         elif Exist_Ans == False and Via_SQuAD == True :
             # 直接進行下一輪問答
             response_dict["session"]["params"]["ask_for_Ans"] = False
-            response_dict["scene"]["next"]["name"] = 'SQuAD_get_Ans'
-            response_dict["params"]["NextScene"] = 'SQuAD_get_Ans'
-            response_dict["session"]["params"]['NextScene'] = 'SQuAD_get_Ans'
+            response_dict["scene"]["next"]["name"] = 'SQuAD_get_Type'
+            response_dict["params"]["NextScene"] = 'SQuAD_get_Type'
+            response_dict["session"]["params"]['NextScene'] = 'SQuAD_get_Type'
     return response_dict
 
 def SQuAD_chatbot_Reply(req):
@@ -1382,6 +1382,7 @@ def SQuAD_chatbot_Reply(req):
     UserQuestion = req['session']['params']['User_question']
     chatbotName = req['session']['params']['chatbotName']
     gameMode = req['session']['params']['game_mode']
+    User_question4F = req['session']['params']['User_question4F']
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
@@ -1394,18 +1395,36 @@ def SQuAD_chatbot_Reply(req):
     find_common_result = myCommonList.find_one(find_common)
     thinking_word = choice(find_common_result['content'])
 
+    button_item = []
     # 當學生提出問句的建議解答後
     if req['session']['params']['ask_for_Ans'] == True:
-        response = "為什麼答案是「" + userSay + "」呀？"
+        if User_question4F == "Fact":
+            response = "為什麼呀？我想聽聽你的說法"
+            nextScene = "SQuAD_get_Reason"
+        elif User_question4F == "Feeling" or User_question4F == "Future":
+            response = "為什麼呀？我想聽聽你的說法"
+            # 問完原因不問頁數，直接跳到最後一關
+            nextScene = "SQuAD_get_Page"
+        elif User_question4F == "Finding":
+            # 不問原因只問頁數
+            # 取得這本書的頁數，再一一加到button_item中
+            for book in book_list:
+                if bookName == book['name']:
+                    number_of_page = book['pages']
+            for i in range(2, number_of_page + 1):
+                button_item.append({'title': str(i)})
+            response = "原來是這樣，這部分在故事的哪幾頁呢？點選頁數後按下傳送就好了喔"
+            nextScene = "SQuAD_get_Page"
+        
         ask_for_Ans = False
         print("學生問題:", UserQuestion, "學生建議答案:", userSay)
-        nextScene = "SQuAD_get_Reason"
+        
     # 機器人回答學生的問句，然後學生按下正確\錯誤鍵後
     else:
         if userSay == "正確":
             response = "太好了，你可以繼續問我問題囉！"
             ask_for_Ans = False
-            nextScene = "SQuAD_get_Ans"
+            nextScene = "SQuAD_get_Type"
         elif userSay == "錯誤" :
             if gameMode == "訓練場":
                 response = "我的答案竟然是錯的，那你可以教教我正確答案是什麼嗎？"
@@ -1414,7 +1433,7 @@ def SQuAD_chatbot_Reply(req):
             elif gameMode == "競技場":
                 response = "我的答案竟然是錯的，真可惜，你考考其他的問題吧。"
                 ask_for_Ans = False
-                nextScene = "SQuAD_get_Ans"
+                nextScene = "SQuAD_get_Type"
 
     
     # 記錄對話
@@ -1453,6 +1472,8 @@ def SQuAD_chatbot_Reply(req):
             }
         },
     }
+    if User_question4F == "Finding":
+        response_dict['prompt']['suggestions'] = button_item
     print(response)
     return response_dict
 
@@ -1468,7 +1489,7 @@ def SQuAD_get_Reason(req):
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
-    response = "原來是這樣，這部分在故事的哪一頁呢？"
+    response = "原來是這樣，這部分在故事的哪幾頁呢？點選頁數後按下傳送就好了喔"
     button_item = []
 
     # 取得這本書的頁數，再一一加到button_item中
@@ -1522,20 +1543,31 @@ def SQuAD_get_Reason(req):
 def SQuAD_get_Page(req):
     session_id = req['session']['id']
     time = req['user']['lastSeenTime']
-    time = req['user']['lastSeenTime']
     user_id = req['session']['params']['User_id']
     userSay = req['intent']['query']
     chatbotName = req['session']['params']['chatbotName']
     UserQuestion = req['session']['params']['User_question']
     UserAns = req['session']['params']['User_ans']
-    UserReason = req['session']['params']['User_reason']
     UserQuestion4F = req['session']['params']['User_question4F']
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
 
-    pages = list(map(int, userSay.split(",")))
-    response = "第" + userSay + "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
+    if UserQuestion4F == "Fact":
+        UserReason = req['session']['params']['User_reason']
+        pages = list(map(int, userSay.split(",")))
+        response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
+    elif UserQuestion4F == "Feeling" or UserQuestion4F == "Future":
+        UserReason = userSay
+        pages = -1
+        response = "原來是這樣，謝謝你告訴我，請你再問我其他問題吧~"
+    elif UserQuestion4F == "Finding":
+        UserReason = -1
+        pages = list(map(int, userSay.split(",")))
+        response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
+    
+
+    
     
     # 將問句、建議答案、頁數及原因存入知識庫
     connectDB.addKnowledgebaseData(myUserSQuADList, dbBookName, user_id, UserQuestion, UserAns, UserReason, pages, UserQuestion4F, time)
@@ -1562,11 +1594,11 @@ def SQuAD_get_Page(req):
             }
         },
         "params": {
-            "NextScene": "SQuAD_get_Ans"
+            "NextScene": "SQuAD_get_Type"
         },
         "scene": {
             "next": {
-                'name': "SQuAD_get_Ans"
+                'name': "SQuAD_get_Type"
             }
         },
         "session": {
@@ -1574,7 +1606,7 @@ def SQuAD_get_Page(req):
                 "User_id": user_id,
                 "User_book": bookName,
                 "thinking_word": thinking_word,
-                "NextScene": "SQuAD_get_Ans"
+                "NextScene": "SQuAD_get_Type"
             }
         },
     }

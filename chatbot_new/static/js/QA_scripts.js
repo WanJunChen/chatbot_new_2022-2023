@@ -55,11 +55,9 @@ function user_sendMsg(Object) {
 	speech_chatbotTalk(" ");
 
 	// 判斷使用者發送方式
-	if(Object.value == undefined && session['params']['NextScene'] != "SQuAD_get_Page"){
-		// 輸入文字方式
-		add_userTalk(TalkWords.value);
-	}
-	else if (session['params']['NextScene'] == "SQuAD_get_Page"){
+	
+	if(session['params']['NextScene'] == "SQuAD_get_Page" &&
+	 (session['params']['User_question4F'] == 'Fact' || session['params']['User_question4F'] == 'Finding')){
 		// 建議文字紐(多選)方式
 
 		// 對已選取的頁數進行排序
@@ -70,6 +68,10 @@ function user_sendMsg(Object) {
 		add_userTalk(selected_page);
 		TalkWords.value = selected_page;
 		selected_page.length = 0;
+	}
+	else if(Object.value == undefined){
+		// 輸入文字方式
+		add_userTalk(TalkWords.value);
 	}
 	else{
 		// 建議文字紐方式
@@ -304,7 +306,7 @@ function speech_chatbotTalk(chatbotspeechStr){
 	//console.log(voices);
 	var toSpeak = new SpeechSynthesisUtterance(chatbotspeechStr);
 		//語速
-		toSpeak.rate = 1;		
+		toSpeak.rate = 1.5;		
 		toSpeak.pitch = 1;      
 		//女聲
     	toSpeak.voice = voices[1];
