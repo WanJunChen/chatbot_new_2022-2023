@@ -157,8 +157,8 @@ ul li{
 .suggest_Checkbox .button {
   display: inline-block;
   margin: 5px 3px;
-  padding: 5px 10px;
-  width: 22px;
+  padding: 5px 5px;
+  width: 30px;
   background: #ebebeb;
   color: #000;
   cursor: pointer; 
