@@ -56,8 +56,7 @@ function user_sendMsg(Object) {
 
 	// 判斷使用者發送方式
 	
-	if(session['params']['NextScene'] == "SQuAD_get_Page" &&
-	 (session['params']['User_question4F'] == 'Fact' || session['params']['User_question4F'] == 'Finding')){
+	if(session['params']['NextScene'] == "SQuAD_get_Page"){
 		// 建議文字紐(多選)方式
 
 		// 對已選取的頁數進行排序
@@ -86,8 +85,8 @@ function user_sendMsg(Object) {
 		//show_chatbotTyping()
 		//同步等待
 		setTimeout(function(){
-			chatbotWords = []
-    		send_userJson()
+			chatbotWords = [];
+    		send_userJson();
     		//clear_chatbotTyping()
 		},1000);
 	}
@@ -99,10 +98,14 @@ function user_sendMsg(Object) {
 
 function user_sendPages(Object){
 	if(selected_page.includes(Object.value)){
-		selected_page.splice(selected_page.indexOf(Object.value), 1)
+		// 從selected_page中刪除頁數
+		console.log("delete", Object.value);
+		selected_page.splice(selected_page.indexOf(Object.value), 1);
 	}
 	else{
-		selected_page.push(Object.value)
+		// 新增頁數到selected_page中
+		console.log("add", Object.value);
+		selected_page.push(Object.value);
 	}
 }
 
@@ -167,7 +170,7 @@ function add_chatbotTalk(){
 				console.log("重複清空")
 			}
 			// 當機器人用SQuAD生成答案時直接pushtext(不需要setTimeout來等待)
-			if(session['params']['NextScene'] == 'SQuAD_get_Ans' && session['params']['Via_SQuAD'] == true){
+			if(session['params']['NextScene'] == 'SQuAD_get_Ans' && session['params']['answerFrom'] == "SQuAD"){
 				if(i == 0 ){
 					console.log("i=0")							
 					pushtext(i);
@@ -189,9 +192,9 @@ function add_chatbotTalk(){
 				}
 			}
 			else{
-				if(i ==0 ){
+				if(i == 0){
 					console.log("i=0");
-					setTimeout(function(){pushtext(i)},3000);
+					setTimeout(function(){pushtext(i)},2000);
 					/*
 					// 內容發音
 					speech_chatbotTalk(chatbotWords_speech[i]);
@@ -583,7 +586,7 @@ function analyze_responseData(){
  		}
 		console.log(res_data["prompt"]["suggestions"])
  		suggest_exist = 1;
- 		show_suggestList();
+		setTimeout(function(){show_suggestList()},2000);
  	}
  	else{
  		suggest_arr = [];

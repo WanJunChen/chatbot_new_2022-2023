@@ -27,6 +27,10 @@ book_list = [{'name': 'Salt and Sugar', 'pages': 22},
             {'name': 'Little Donkey', 'pages': 22}, 
             {'name': 'All About Me', 'pages': 22}, 
             {'name': 'Birthday Presents', 'pages': 22}]
+Question_4F = { 'Fact'      :'故事中的現象',
+                'Feeling'   :'我的感受',
+                'Finding'   :'為什麼',
+                'Future'    :'應該怎麼做'}
 
 def check_input(req):
     print('scene: 確認說話內容')
@@ -1253,10 +1257,7 @@ def SQuAD_get_Ans(req):
     dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
     connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userInput, time, session_id, req['scene']['name'])
 
-    Question_4F = { 'Fact'      :'故事中的現象',
-                    'Feeling'   :'我的感受',
-                    'Finding'   :'為什麼',
-                    'Future'    :'應該怎麼做'}
+    
     User_question4F = ''
     for key, value in Question_4F.items():
         if userInput == value:
@@ -1277,38 +1278,54 @@ def SQuAD_get_Ans(req):
     find_common = {'type': 'common_ask_for_answer'}
     find_common_result_askAnswer = myCommonList.find_one(find_common)
 
-    # 將書名資料傳送給機器人伺服器
-    Check = Get_squadBook.get_squadBook(dbBookName, False)
-    Via_SQuAD = False
-    Exist_Ans = False
-    print("http://127.0.0.1:4220/squad_getBook :", Check)
-    if Check:
-        SQuAD_Ans = Get_squadAnswer.get_squadAnswer(UserQuestion, False)
-        if SQuAD_Ans == None:
-            # 沒有透過SQuAD
-            Via_SQuAD = False
-            Exist_Ans = False
-            response = "你的問題在哪呀？"
-        elif SQuAD_Ans == "NO_ANS":
-            # SQuAD沒有生成出答案
+    find_user = {'User_id': user_id}
+    now_user = myUserSQuADList.find_one(find_user)
+    Exist_Ans = False 
+    answerFrom = ''
+    if dbBookName in now_user["QAChatbotData"]["Knowledgebase"].keys():
+        for QA in now_user["QAChatbotData"]["Knowledgebase"][dbBookName]:
+            # 如果知識庫中有此問句
+            if UserQuestion in QA["Question"]:
+                answerFrom = 'Knowledgebase'
+                Exist_Ans = True
+                print("Knowledgebase中找到QA:", QA)
+                response += choice(find_common_result_answerT['content']).replace('XXX', QA["Answer"])
+                break
+    if answerFrom == '':
+        print("Knowledgebase中沒有找到QA，執行SQuAD")
+        # 將書名資料傳送給機器人伺服器
+        Check = Get_squadBook.get_squadBook(dbBookName, False)
+        print("http://127.0.0.1:4220/squad_getBook :", Check)
+        if Check:
+            SQuAD_Ans = Get_squadAnswer.get_squadAnswer(UserQuestion, False)
+            if SQuAD_Ans == None:
+                # 沒有透過SQuAD
+                answerFrom = ''
+                Exist_Ans = False
+                response = "你的問題在哪呀？"
+            elif SQuAD_Ans == "NO_ANS":
+                # SQuAD沒有生成出答案
 
-            # (2022/11 待完成)
-            # if 知識庫中有類似的問句:
-            #   把這個問句的建議解答拿出來，丟到response
-            # else:  #再向使用者徵求答案
-            Via_SQuAD = True
-            Exist_Ans = False
-            if gameMode == "訓練場":
-                # 會徵求答案
-                response += choice(find_common_result_answerF['content']) + choice(find_common_result_askAnswer['content'])
-            elif gameMode == "競技場":
-                response += choice(find_common_result_answerF['content']) + "真可惜，你考考其他的問題吧。"
-        else:
-            # SQuAD有生成出答案
-            Via_SQuAD = True
-            Exist_Ans = True
-            response += choice(find_common_result_answerT['content']).replace('XXX', SQuAD_Ans)
-        # 待完成:若學生有輸入過他認為的答案，就以學生先前教機器人的答案作為回復
+                # (2022/11 待完成)
+                # if 知識庫中有類似的問句:
+                #   把這個問句的建議解答拿出來，丟到response
+                # else:  #再向使用者徵求答案
+                answerFrom = 'SQuAD'
+                Exist_Ans = False
+                if gameMode == "訓練場":
+                    # 會徵求答案
+                    if User_question4F == "Feeling":
+                        response += choice(find_common_result_answerF['content']) + "你覺得呢？"
+                    else:
+                        response += choice(find_common_result_answerF['content']) + choice(find_common_result_askAnswer['content'])
+                elif gameMode == "競技場":
+                    response += choice(find_common_result_answerF['content']) + "真可惜，你考考其他的問題吧。"
+            else:
+                # SQuAD有生成出答案
+                answerFrom = 'SQuAD'
+                Exist_Ans = True
+                response += choice(find_common_result_answerT['content']).replace('XXX', SQuAD_Ans)
+            # 待完成:若學生有輸入過他認為的答案，就以學生先前教機器人的答案作為回復
 
     # 記錄對話過程
     connectDB.addDialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, req['session']['params']['thinking_word'], time, session_id, req['scene']['name'])
@@ -1334,7 +1351,7 @@ def SQuAD_get_Ans(req):
                 "User_id": user_id,
                 "User_question4F": User_question4F,
                 "User_book": bookName,
-                "Via_SQuAD": Via_SQuAD,
+                "answerFrom" : answerFrom,
                 "Exist_Ans": Exist_Ans,
                 "ask_for_Ans": False,
                 "thinking_word": thinking_word,
@@ -1347,16 +1364,13 @@ def SQuAD_get_Ans(req):
         if Exist_Ans == True:
             # 顯示「正確/錯誤」的按鈕
             response_dict["prompt"]["suggestions"] = button_item
-            response_dict["scene"]["next"]["name"] = 'SQuAD_chatbot_Reply'
-            response_dict["params"]["NextScene"] = 'SQuAD_chatbot_Reply'
-            response_dict["session"]["params"]['NextScene'] = 'SQuAD_chatbot_Reply'
-        # 如果有跑SQuAD但是沒有生成出對應的答案(也就是說機器人回答不出來時)
-        elif Exist_Ans == False and Via_SQuAD == True :
+        # 如果沒有找到或生成出對應的答案(也就是說機器人回答不出來時)
+        elif Exist_Ans == False and answerFrom != "" :
             # 徵求使用者認為的答案
             response_dict["session"]["params"]["ask_for_Ans"] = True
-            response_dict["scene"]["next"]["name"] = 'SQuAD_chatbot_Reply'
-            response_dict["params"]["NextScene"] = 'SQuAD_chatbot_Reply'
-            response_dict["session"]["params"]['NextScene'] = 'SQuAD_chatbot_Reply'
+        response_dict["scene"]["next"]["name"] = 'SQuAD_chatbot_Reply'
+        response_dict["params"]["NextScene"] = 'SQuAD_chatbot_Reply'
+        response_dict["session"]["params"]['NextScene'] = 'SQuAD_chatbot_Reply'
     elif gameMode == "競技場":
         if Exist_Ans == True:
             # 顯示「正確/錯誤」的按鈕
@@ -1364,8 +1378,8 @@ def SQuAD_get_Ans(req):
             response_dict["scene"]["next"]["name"] = 'SQuAD_chatbot_Reply'
             response_dict["params"]["NextScene"] = 'SQuAD_chatbot_Reply'
             response_dict["session"]["params"]['NextScene'] = 'SQuAD_chatbot_Reply'
-        # 如果有跑SQuAD但是沒有生成出對應的答案(也就是說機器人回答不出來時)
-        elif Exist_Ans == False and Via_SQuAD == True :
+        # 如果沒有找到或生成出對應的答案(也就是說機器人回答不出來時)
+        elif Exist_Ans == False and answerFrom != "" :
             # 直接進行下一輪問答
             response_dict["session"]["params"]["ask_for_Ans"] = False
             response_dict["scene"]["next"]["name"] = 'SQuAD_get_Type'
@@ -1398,14 +1412,7 @@ def SQuAD_chatbot_Reply(req):
     button_item = []
     # 當學生提出問句的建議解答後
     if req['session']['params']['ask_for_Ans'] == True:
-        if User_question4F == "Fact":
-            response = "為什麼呀？我想聽聽你的說法"
-            nextScene = "SQuAD_get_Reason"
-        elif User_question4F == "Feeling" or User_question4F == "Future":
-            response = "為什麼呀？我想聽聽你的說法"
-            # 問完原因不問頁數，直接跳到最後一關
-            nextScene = "SQuAD_get_Page"
-        elif User_question4F == "Finding":
+        if User_question4F == "Finding":
             # 不問原因只問頁數
             # 取得這本書的頁數，再一一加到button_item中
             for book in book_list:
@@ -1413,8 +1420,12 @@ def SQuAD_chatbot_Reply(req):
                     number_of_page = book['pages']
             for i in range(2, number_of_page + 1):
                 button_item.append({'title': str(i)})
+            button_item.append({'title': '沒有'})
             response = "原來是這樣，這部分在故事的哪幾頁呢？點選頁數後按下傳送就好了喔"
             nextScene = "SQuAD_get_Page"
+        else:
+            response = "為什麼呀？我想聽聽你的說法"
+            nextScene = "SQuAD_get_Reason"
         
         ask_for_Ans = False
         print("學生問題:", UserQuestion, "學生建議答案:", userSay)
@@ -1442,7 +1453,8 @@ def SQuAD_chatbot_Reply(req):
     dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
     connectDB.addDialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, req['scene']['name'])
     connectDB.addDialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, req['scene']['name'])
-
+    if userSay[:2] == "因為":
+        userSay = userSay.replace("因為", "")
     response_dict = {
         "prompt": {
             "firstSimple": {
@@ -1465,7 +1477,7 @@ def SQuAD_chatbot_Reply(req):
                 "User_question": UserQuestion,
                 "User_ans": userSay,
                 "User_book": bookName,
-                "Via_SQuAD": False,
+                "answerFrom" : "",
                 "ask_for_Ans": ask_for_Ans,
                 "thinking_word": thinking_word,
                 "NextScene": nextScene
@@ -1498,6 +1510,7 @@ def SQuAD_get_Reason(req):
             number_of_page = book['pages']
     for i in range(2, number_of_page + 1):
         button_item.append({'title': str(i)})
+    button_item.append({'title': '沒有'})
 
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
@@ -1539,7 +1552,7 @@ def SQuAD_get_Reason(req):
     print(response)
     return response_dict
 
-# 詢問使用者此答案的頁數(只有Fact和Finding的問句才問)
+# 詢問使用者此答案的頁數
 def SQuAD_get_Page(req):
     session_id = req['session']['id']
     time = req['user']['lastSeenTime']
@@ -1552,19 +1565,16 @@ def SQuAD_get_Page(req):
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
-
-    if UserQuestion4F == "Fact":
-        UserReason = req['session']['params']['User_reason']
-        pages = list(map(int, userSay.split(",")))
-        response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
-    elif UserQuestion4F == "Feeling" or UserQuestion4F == "Future":
-        UserReason = userSay
-        pages = -1
-        response = "原來是這樣，謝謝你告訴我，請你再問我其他問題吧~"
-    elif UserQuestion4F == "Finding":
+    pages = None
+    if UserQuestion4F == "Finding":
         UserReason = -1
+    else:
+        UserReason = req['session']['params']['User_reason']
+    if "沒有" not in userSay:
         pages = list(map(int, userSay.split(",")))
         response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，請你再問我其他問題吧~"
+    else:
+        response = "原來不在故事裡，謝謝你告訴我，請你再問我其他問題吧~"
     
 
     
