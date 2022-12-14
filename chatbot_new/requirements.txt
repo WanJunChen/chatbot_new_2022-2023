@@ -53,6 +53,8 @@ distlib              0.3.6
 dual                 0.0.10
 dynamo3              0.4.10
 easydict             1.10
+elastic-transport    8.4.0
+elasticsearch        8.5.3
 en-core-web-sm       2.3.1
 et-xmlfile           1.1.0
 exceptiongroup       1.0.4
@@ -195,7 +197,7 @@ transformers         3.4.0
 typer                0.7.0
 typing_extensions    4.4.0
 uc-micro-py          1.0.1
-urllib3              1.25.11
+urllib3              1.26.13
 uvicorn              0.20.0
 virtualenv           20.17.1
 visualdl             2.4.1
