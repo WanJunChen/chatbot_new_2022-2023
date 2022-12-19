@@ -11,7 +11,9 @@ pymongo
 allennlp==1.0.0
 allennlp-models==1.0.0
 
-2022/12/14 - WanJun Chen updated
+
+Package              Version
+-------------------- ----------
 aiohttp              3.8.3
 aiosignal            1.3.1
 allennlp             1.2.1
@@ -53,8 +55,8 @@ distlib              0.3.6
 dual                 0.0.10
 dynamo3              0.4.10
 easydict             1.10
-elastic-transport    8.4.0
-elasticsearch        8.5.3
+elastic-transport    7.15.0
+elasticsearch        7.15.0
 en-core-web-sm       2.3.1
 et-xmlfile           1.1.0
 exceptiongroup       1.0.4
@@ -197,7 +199,7 @@ transformers         3.4.0
 typer                0.7.0
 typing_extensions    4.4.0
 uc-micro-py          1.0.1
-urllib3              1.26.13
+urllib3              1.25.10
 uvicorn              0.20.0
 virtualenv           20.17.1
 visualdl             2.4.1
