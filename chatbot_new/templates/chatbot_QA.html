@@ -18,7 +18,6 @@
     
 </head>
 <body>
-    <div class="mode_background" id="mode_background"></div>
     <!-- 對話顯示 -->
     <div class="talk_content" id="talk_content_id" style="position:absolute;">	 
         <div class="info_content" id="info_content_id">  
@@ -77,6 +76,52 @@
         </div>
         
 
+    </div>
+    <!-- 引導機器人(魚姐姐) -->
+    <div class="guide" id="guide_id">
+      <div class="mode_background" id="mode_background"></div>
+      <div class="book-cover" id="book-cover_id"></div>
+      <div class="guide-context">
+        不知道要問什麼嗎？來找魚姊姊吧！<br><br>點擊下面這四種類型的按鈕，看看可以怎麼問喔。<br><br>
+
+        <button class="Fact_btn" onclick="display_guide(this)" value='Fact'>故事內容</button><br>
+        <div class="Example_4F Fact" id="Fact">
+          <ul>
+            <li>Salt最後負責做什麼工作？</li>
+            <li>老Adam開了什麼店鋪？</li>
+            <li>Mandy和Sophie在哪裡玩？</li>
+          </ul>
+        </div>
+
+        <button class="Feeling_btn" onclick="display_guide(this)" value='Feeling'>我的感受</button><br>
+        <div class="Example_4F Feeling" id="Feeling">
+          <ul>
+            <li>你覺得Salt會很壞嗎？</li>
+            <li>你認為Sophie是一個什麼樣的人?</li>
+          </ul>
+        </div>
+
+        <button class="Finding_btn" onclick="display_guide(this)" value='Finding'>為什麼</button><br>
+        <div class="Example_4F Finding" id="Finding">
+          <ul>
+            <li>Sophie為什麼很特別？</li>
+          </ul>
+        </div>
+
+        <button class="Future_btn" onclick="display_guide(this)" value='Future'>如果...</button>
+        <div class="Example_4F Future" id="Future">
+          <ul>
+            <li>如果你是Little Donkey，會跟國王走嗎？</li>
+          </ul>
+        </div>
+
+        <div class="guide_robot" id="guide_robot_id"><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}" ></img>魚姊姊</div>
+      </div>
+    </div>
+
+    <!-- 書本頁面瀏覽 -->
+    <div class="book" id="book_id">
+      
     </div>
 
   </body>

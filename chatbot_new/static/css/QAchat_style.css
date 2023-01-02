@@ -1,13 +1,13 @@
 @media screen and (min-width: 320px) and (max-width: 1156px){ 
 /*	320 1156*/
 	.talk_content_mob{
-		width:600px;
-		height:750px;
+		width:450px;
+		height:600px;
 		border:1px solid #666;
 		margin:50px auto 0;
-		background:#f9f9f9;
+		background:rgba(249,249,249,0.7);
     border-radius: 20px;
-    background-image: url("../static/image/400.jpg");
+    /* background-image: url("../static/image/400.jpg"); */
 
 	}
 	.talk_show_mob{
@@ -24,9 +24,10 @@
     padding: 0px;
     border-radius: 5px;
     overflow:auto;
+    display: none;
 	}
 	.talk_input_mob{
-		width:580px;
+		width:420px;
     /*margin-top: 150px;
 		margin:10px auto 0;*/
 		font-family: 微軟正黑體;
@@ -43,7 +44,7 @@
 		text-indent:10px;
 */
 
-    width:420px;
+    width:290px;
     height:40px;
     padding:0px;
     margin-top: 5px;
@@ -54,7 +55,217 @@
     border-radius: 10px;
     font-size: 20px;
 	}  
+
+  .talk_suggest_mob{
+    width: 420px;
+    font-family: 微軟正黑體;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap; 
+    text-align:right;
+    padding: 10px 10px;
+  }
+
+  .guide_mob {
+    position: relative;
+    width: 180px;
+    height: 660px;
+    /* border: solid white 1px; */
+    left: 460px;
+    top: 20px;
+    display: none;
+    animation: slide-in-top 3s;
+    margin: 10px;
+    font-size: 15px;
+  }
+
+  .guide_robot_mob {
+    position:absolute;
+    width: 60%;
+    margin:0px auto;
+    right: 10px;
+    bottom: 5px;
+    color: white;
+    text-align: center;
+  }
+
+  .book_mob{
+    position: relative;
+    width: 300px;
+    height: 670px;
+    left: 470px;
+    top: 20px;
+    border:5px solid #ffffff;
+    background: rgba(249,249,249,0.3);
+    overflow-y: scroll;
+    display: none;
+    border-radius: 0.8em;
+  }
 }
+
+.Mode_Words{
+  position: relative;
+  width: 100%;;
+  height: 27px;
+  padding: 10px 10px;
+  font-size: 21px;
+  font-family: 微軟正黑體;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  border-radius: 21px;
+  /* top: 20px; */
+}
+
+.mode_background{
+  position: absolute;
+}
+
+.Mode_BGimg{
+  width: 720px;
+  height: 950px;
+  margin: 0px;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: contain; 
+}
+
+.guide {
+  position: relative;
+  width: 180px;
+  height: 900px;
+  /* border: solid white 1px; */
+  left: 610px;
+  display: none;
+  animation: slide-in-top 3s;
+  margin: 10px;
+  font-size: 19px;
+}
+.book-cover{
+  position: absolute;
+  /* width: 94%; */
+  height: 18.5%;
+  border-radius: 0.8em; 
+  border:5px solid #ffffff;
+  display: none;
+  /* right: 0; */
+  top: 50px;
+}
+.book-cover img{
+  height: 100%;
+  border-radius: 0.5em;
+}
+.guide-context {
+  position: absolute;
+  height: 69%;
+  width: 83%;
+  background:  #8876a3;
+  border:5px solid #ffffff;
+  border-radius: 0.8em;
+  color:white;
+  text-align: left;
+  padding: 10px; 
+  top: 28%;
+  z-index: 4;
+}
+
+.guide_robot {
+  position:absolute;
+  width: 90%;
+  margin:0px auto;
+  bottom: 5px;
+  color: white;
+  text-align: center;
+}
+.guide-context button{
+  width: 80px;
+  padding: 3px;
+  margin: 2px 0px;
+  outline: none;
+  border: none;
+  text-align: center;   
+  border-radius: 5px;
+  background: #ebebeb;
+}
+
+.Example_4F{
+  width: 200%;
+  position: relative;
+  padding: 3px 8px;
+  border-radius: 5px;
+  /* border: 1px solid wheat; */
+  background: rgb(163, 123, 98);
+  display: none;
+  animation: fadeout 1s;
+  box-shadow: 2px 2px 5px rgb(56, 56, 56);
+}
+
+
+.Example_4F ul li{
+  position: relative;
+  width: 90%;
+  left: 20px;
+	list-style-type: disc;
+}
+
+.book{
+  position: relative;
+  width: 300px;
+  height: 890px;
+  left: 620px;
+  border:5px solid #ffffff;
+  background: rgba(249,249,249,0.3);
+  overflow-y: scroll;
+  display: none;
+  border-radius: 0.8em;
+}
+.book::-webkit-scrollbar { display: none; }
+.allPageImg{
+  overflow: auto;
+  display: none;
+}
+.page{
+  position: relative;
+  width: 148px;
+  height: 148px;
+  float:left;
+  margin: 1px;
+}
+.page img{
+  width: 100%;
+}
+/* 詢問頁數時的多選按鈕 */
+.page input[type="checkbox"] {
+  display: none; 
+}
+.page input:checked + .button {
+  background: #104c87;
+  color: #fff;
+}
+.page .button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 33%;
+  height: 33%;
+  background: #ebebeb;
+  color: #000;
+  cursor: pointer; 
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.page .button:hover {
+  background: #bbb;
+  color: #fff; 
+}
+.page .round {
+  border-radius: 25px; 
+  box-shadow: 2px 2px 5px gray;
+}
+
+
 /*對話顯示*/
 
 .talk_content {
@@ -79,6 +290,7 @@
   padding: 0px;
   border-radius: 5px;
   overflow:auto;
+  display: none;
 }
 
 .talk{
@@ -109,14 +321,10 @@
 	padding:5px 10px;
 }
 
-ul li{
-	list-style-type:none;
-}
 /*使用者輸入建議*/
 .talk_suggest::-webkit-scrollbar { display: none; }
 .talk_suggest{
   width:580px;
-  margin-left: 8px;
   font-family: 微軟正黑體;
   overflow-x: scroll;
   overflow-y: hidden;
@@ -126,6 +334,7 @@ ul li{
 }
 
 .suggest_Btn {
+  position: relative;
   margin: 5px 3px;
   display: inline-block;
   padding: 10px 20px;
@@ -141,37 +350,12 @@ ul li{
   box-shadow: 2px 2px 5px gray;
   font-size: 20px;
 
+  z-index: 2;
 }
 .suggest_Btn:active {
   background-color: #d9d9d9;
 }
 
-/* 詢問頁數時的多選按鈕 */
-.suggest_Checkbox input[type="checkbox"] {
-  display: none; 
-}
-.suggest_Checkbox input:checked + .button {
-  background: #5e7380;
-  color: #fff;
-}
-.suggest_Checkbox .button {
-  display: inline-block;
-  margin: 5px 3px;
-  padding: 5px 5px;
-  width: 30px;
-  background: #ebebeb;
-  color: #000;
-  cursor: pointer; 
-  text-align: center;
-}
-.suggest_Checkbox .button:hover {
-  background: #bbb;
-  color: #fff; 
-}
-.suggest_Checkbox .round {
-  border-radius: 5px; 
-  box-shadow: 2px 2px 5px gray;
-}
 
 /*使用者任務提示*/
 .talk_taskHint::-webkit-scrollbar { display: none; }
@@ -342,10 +526,7 @@ ul li{
 }
 /*20210408*/
 #fish {
-
-  height: 80%; 
   width: 100%; 
-  float: left;
 }
 #star {
   height: 40px; 
@@ -382,10 +563,12 @@ ul li{
   list-style: none;
 }
 .botsay{
+  position: relative;
   margin-top:40px;
   width:60%;
   margin:0px auto;
   height:20%;
+  z-index: 3;
 }
 .usersay{
   float: right;
@@ -393,8 +576,11 @@ ul li{
   margin-right: 20px;
 }
 .head{
+  position: relative;
   margin:0px auto;
-  width: 70%;
+  width: 50%;
+  bottom: -100px;
+  z-index: 1;
 }
 
 
@@ -427,16 +613,21 @@ ul li{
   margin-left: -15.5px;
   margin-bottom: -31px;
 }
+.robotStyle {
+  height: 75px;
+}
 html,
 body {
   height: 100%;
+  width: 1400px;
 }
 
 body {
   font-family: "Noto Sans TC", sans-serif;
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
+  padding: 0 30px;
   /* background-image: url("../image/Background/TrainingRoom.jpg");
   background-size: 50%;
   background-position: bottom center;
@@ -449,4 +640,48 @@ body {
 
 /*去除iOS系统默認appearance的樣式*/
 input[type=button], input[type=submit], input[type=file], button { cursor: pointer; -webkit-appearance: none; } 
+
+
+/* 動畫 */
+@-webkit-keyframes fadeout{ /*淡出動畫*/
+  0%{opacity: 0;}
+  100%{opacity: 1;}
+}
+/* ----------------------------------------------
+ * Generated by Animista on 2022-12-20 16:49:41
+ * Licensed under FreeBSD License.
+ * See http://animista.net/license for more info. 
+ * w: http://animista.net, t: @cssanimista
+ * ---------------------------------------------- */
+
+/**
+ * ----------------------------------------
+ * animation slide-in-top
+ * ----------------------------------------
+ */
+ @-webkit-keyframes slide-in-top {
+  0% {
+    -webkit-transform: translateY(-1000px);
+            transform: translateY(-1000px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-top {
+  0% {
+    -webkit-transform: translateY(-1000px);
+            transform: translateY(-1000px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 </style>

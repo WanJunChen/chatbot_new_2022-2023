@@ -10,9 +10,11 @@ var starPng_ImageUrl = "/static/image/star.png";
 var typingGif_ImageUrl = "/static/image/typing.gif";
 var TrainingRoom_ImageUrl = "../static/image/Background/TrainingRoom.jpg";
 var PlayingRoom_ImageUrl = "../static/image/Background/PlayingRoom.jpg";
+var Book_ImageFileUrl = "../static/image/story_img/";
 var res_data;
 var random_pitch;
 var voices = [];
+var voicesID = 1;
 var handler = { "name" : "input_userId" }; 
 var intent = { "params" : {}, "query" : "" }; 
 var scene = { "name" : "input_userId" };  
@@ -28,13 +30,14 @@ var usersay_last= "";
 var sync_waitInput_flag = 0;
 var rec_imageUrl = "";
 var post_count = 0;
-var suggest_arr = ["丁班", "戊班"];
+var suggest_arr = ["501", "502", "503", "504", "505", "506"];
 var score = 0;
 var suggest_exist = 0;
 // 心情變數 PA
 var CE_P=0;
 var CE_A=0;
 var selected_page = []
+var toHiddenID = "Fact"
 
 // 使用者輸入訊息
 function user_inputPress() {
@@ -55,8 +58,7 @@ function user_sendMsg(Object) {
 	speech_chatbotTalk(" ");
 
 	// 判斷使用者發送方式
-	
-	if(session['params']['NextScene'] == "SQuAD_get_Page"){
+	if(session['params']['NextScene'] == "SQuAD_get_Page" && selected_page.length != 0){
 		// 建議文字紐(多選)方式
 
 		// 對已選取的頁數進行排序
@@ -194,7 +196,7 @@ function add_chatbotTalk(){
 			else{
 				if(i == 0){
 					console.log("i=0");
-					setTimeout(function(){pushtext(i)},2000);
+					setTimeout(function(){pushtext(i)},1500);
 					/*
 					// 內容發音
 					speech_chatbotTalk(chatbotWords_speech[i]);
@@ -306,13 +308,13 @@ function speech_chatbotTalk(chatbotspeechStr){
 //SpeechSynthesisUtterance.voice：設定或取得發音的聲音。
 //SpeechSynthesisUtterance.volume：設定或取得發音的音量。	
 	
-	//console.log(voices);
+	// console.log(voices);
 	var toSpeak = new SpeechSynthesisUtterance(chatbotspeechStr);
 		//語速
 		toSpeak.rate = 1.5;		
 		toSpeak.pitch = 1;      
 		//女聲
-    	toSpeak.voice = voices[1];
+    	toSpeak.voice = voices[voicesID];
     	//
     	if (CE_P>5){
     		toSpeak.pitch = 1.5; 
@@ -336,23 +338,15 @@ function show_suggestList(){
 	
 	var suggestionStr = "";
 	
-	for(var i = 0; i < suggest_arr.length; i++){
-		suggestionStr += '<button class="suggest_Btn" onclick="user_sendMsg(this)"  value=' + suggest_arr[i] + '>' + suggest_arr[i] + '</button>'
+	if(session["params"]['NextScene'] == 'SQuAD_chatbotName'){
+		for(var i = 0; i < suggest_arr.length; i++){
+			// 這邊待修改(要把button改成機器人圖片)
+			suggestionStr += '<button class="suggest_Btn" onclick="user_sendMsg(this)"  value=' + suggest_arr[i] + ' style="padding:8px;"><img class="robotStyle" src="/static/image/chatbot/' + suggest_arr[i] + '.png"></button>'
+		}
 	}
-	
-	// 詢問頁數時，要給使用者多選的按鈕
-	if(res_data != null){
-		if(res_data.hasOwnProperty("scene")){
-			if(res_data['scene']['next']['name'] == "SQuAD_get_Page"){
-				suggestionStr = '<div class="suggest_Checkbox">';
-				for(var i = 0; i < suggest_arr.length; i++){
-					suggestionStr += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + suggest_arr[i] + ' /><span class="round button">' + suggest_arr[i] + '</span></label>'
-					if (i == parseInt(suggest_arr.length/2)){
-						suggestionStr += '<br>'
-					}
-				}
-				suggestionStr += '</div>'
-			}
+	else{
+		for(var i = 0; i < suggest_arr.length; i++){
+			suggestionStr += '<button class="suggest_Btn" onclick="user_sendMsg(this)"  value=' + suggest_arr[i] + '>' + suggest_arr[i] + '</button>'
 		}
 	}
 	//20210915
@@ -364,6 +358,9 @@ function show_suggestList(){
 	}
 	else{
 		document.getElementById("talk_input_id").style.marginTop = "0";
+	}
+	if(session["params"]['NextScene'] == 'SQuAD_chatbotName'){
+
 	}
 	
 }
@@ -603,29 +600,6 @@ function analyze_responseData(){
 	 	else{
 	 		clear_taskHint();
 	 	} 
-
-		//存在問答遊戲模式，切換遊戲背景
-		if(res_data["session"]["params"].hasOwnProperty("game_mode")){
-			console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
-			Background_Img = '';
-			Background_Style = '';
-			Mode_Words = '';
-			WordBG_color = ''
-			if (res_data["session"]["params"]["game_mode"] == "訓練場"){
-				Background_Img = TrainingRoom_ImageUrl;
-				WordBG_color = "#302b40";
-			}
-			else if (res_data["session"]["params"]["game_mode"] == "競技場"){
-				Background_Img = PlayingRoom_ImageUrl;
-				WordBG_color = "#00bfbe";
-			}
-			Mode_Words = '<div style="width: 160px; height: 40px; padding: 10px 10px; font-size: 30px; font-family: 微軟正黑體; font-weight: bold; color: white; text-align: center; border-radius: 20px; background-color: ' + WordBG_color + ';">'
-							+ res_data["session"]["params"]["game_mode"]
-							+ '</div>';
-			Background_Style = 'style = "width: 720px; height: 950px; margin: 0px; background-position: bottom center; background-repeat: no-repeat; background-size: contain; background-image: url('+ Background_Img +');"'
-			ModeBackground.innerHTML = '<div ' + Background_Style + '><center>' + Mode_Words + '</center></div>';
-			console.log(ModeBackground);
-		}
 	 }
 
 	
@@ -687,15 +661,78 @@ function analyze_responseData(){
 		}	 	
 	}
 
-	// 將魚姐姐圖片轉換成機器人圖片
-	if(res_data.hasOwnProperty("session")){
-		if(res_data["session"]["params"].hasOwnProperty("game_mode")){
-			document.getElementById("fish").src = "/static/image/expression/00.png"         
+	if(session['params']['first_nameChatbot'] == true ||
+		(session["params"]["game_mode"] == "訓練場" && session["params"]['NextScene'] == "Get_bookName") ||
+		(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Prompt_SQuAD")){
+	// if(session['params']['first_nameChatbot'] == true || (session["params"].hasOwnProperty("game_mode") && session["params"]['NextScene'] == "Get_bookName")){
+	// if(session["params"].hasOwnProperty("game_mode") && session["params"]['NextScene'] == "Prompt_SQuAD"){
+		// 將魚姐姐圖片轉換成學生自訂的機器人圖片，並顯示右側導覽區和書本頁面區
+		robotID = session["params"]['chatbotStyle'];
+		document.getElementById("fish").src = "/static/image/chatbot/"+robotID+".png";
+		document.getElementById("guide_id").style.display = "flex";
+		book.style.display = "block";
+		// 切換機器人聲音
+		voicesID = 0;
+
+		// 存在問答遊戲模式，切換遊戲背景
+		console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
+		Background_Img = '';
+		Mode_Words = '';
+		WordBG_color = ''
+		if (res_data["session"]["params"]["game_mode"] == "訓練場"){
+			Background_Img = TrainingRoom_ImageUrl;
+			WordBG_color = "#302b40";
 		}
+		else if (res_data["session"]["params"]["game_mode"] == "競技場"){
+			Background_Img = PlayingRoom_ImageUrl;
+			WordBG_color = "#00bfbe";
+		}
+		Mode_Words = '<div class="Mode_Words" style="background-color: ' + WordBG_color + ';">'
+						+ res_data["session"]["params"]["game_mode"]
+						+ '</div>';
+		ModeBackground.innerHTML = '<div class="Mode_BGimg" style = "background-image: url('+ Background_Img +');"><center>' + Mode_Words + '</center></div>';
+		ModeBackground.innerHTML = Mode_Words;
 
 	}
+
+	// 在左上方顯示書籍封面、右方book區塊顯示書籍頁面
+	if(session["params"].hasOwnProperty("User_book") && session["params"]['NowScene'] == "Prompt_SQuAD"){
+		book_cover.style.display = "block"
+		book_showPages(false);
+		book_cover.innerHTML = '<img src="' + Book_ImageFileUrl + bookName + '/cover.jpg"></img>';
+	}
+	
+	// 刷新book區塊並加上頁數的多選按鈕
+	if(session['params']['NextScene'] == "SQuAD_get_Page"){
+		book.innerHTML = "";
+		book_showPages(true);
+	}
+
+	//進到下一輪問答時先把頁數的按鈕移除 
+	if(session['params']['NowScene'] == "SQuAD_get_Page" && session['params']['NextScene'] == "SQuAD_get_Type"){
+		book.innerHTML = "";
+		book_showPages(false);
+	}
+
+	
+	
 }
 
+// book頁面顯示
+function book_showPages(show_button){
+	bookName = session["params"]["User_book"];
+	OnePageImgUrl = '';
+	allPageImg = ''
+	for(let i = 2; i <= 23; i++){
+		OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
+		allPageImg += '<div class="page"><img id="page'+ i +'" src="' + OnePageImgUrl + '"></img>';
+		if (show_button == true){
+			allPageImg += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>';
+		}
+		allPageImg += '</div>';
+	}
+	book.innerHTML = allPageImg;
+}
 
 // 改變機器人表情
 function change_chatbotMood(){
@@ -736,6 +773,20 @@ function show_score(){
 		document.getElementById("score").textContent = 'x ' + score;
 	}
 	
+}
+
+// 控制導覽區4F範例框的顯示
+function display_guide(object){
+	var example_content = document.getElementById(object.value)
+
+	if(example_content.style.display == "block"){
+		example_content.style.display = "none";
+	}
+	else{
+		document.getElementById(toHiddenID).style.display = "none";
+		example_content.style.display = "block";
+	}
+	toHiddenID = object.value
 }
 
 // 取得目前時間
@@ -790,6 +841,8 @@ window.onload = function(){
 	Suggestions = document.getElementById("talk_suggest_id"); 
 	TaskHints = document.getElementById("talk_taskHint_id"); 
 	ModeBackground = document.getElementById("mode_background");
+	book = document.getElementById("book_id"); 
+	book_cover = document.getElementById("book-cover_id"); 
 
 	// 目前使用裝置
 	if (bIsIpad || bIsIphoneOs || bIsMidp || bIsUc7 || bIsUc || bIsAndroid || bIsCE || bIsWM) {
@@ -798,12 +851,19 @@ window.onload = function(){
 		document.getElementById('words').className = 'talk_show_mob';	
 		document.getElementById('talk_input_id').className = 'talk_input_mob';	
 		document.getElementById('talkwords').className = 'talk_word_mob';	
+		document.getElementById('talk_suggest_id').className = 'talk_suggest_mob';	
+		document.getElementById('guide_id').className = 'guide_mob';
+		document.getElementById('guide_robot_id').className = 'guide_robot_mob';
+		document.getElementById('book_id').className = 'book_mob';
 	} else {
 		console.log("電腦"); 
 		document.getElementById('talk_content_id').className = 'talk_content';
 		document.getElementById('words').className = 'talk_show';	
 		document.getElementById('talk_input_id').className = 'talk_input';	
 		document.getElementById('talkwords').className = 'talk_word';	
+		document.getElementById('talk_suggest_id').className = 'talk_suggest';	
+		document.getElementById('guide_id').className = 'guide';
+		document.getElementById('book_id').className = 'book';
 	}
 
 	show_suggestList()
