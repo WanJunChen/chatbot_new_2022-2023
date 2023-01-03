@@ -39,6 +39,7 @@ var CE_A=0;
 var selected_page = []
 var toHiddenID = "Fact"
 
+
 // 使用者輸入訊息
 function user_inputPress() {
 
@@ -575,7 +576,7 @@ function analyze_responseData(){
  	}
 
  	// JSON 存在 suggestions 用作建議輸入文字
-	if(res_data["prompt"].hasOwnProperty("suggestions")){
+	if(res_data["prompt"].hasOwnProperty("suggestions") && res_data["prompt"]["suggestions"].length != 0){
 		suggest_arr = [];
 		clear_suggestList();
 		for(var item_suggest in res_data["prompt"]["suggestions"]){ 		
@@ -661,11 +662,8 @@ function analyze_responseData(){
 		}	 	
 	}
 
-	if(session['params']['first_nameChatbot'] == true ||
-		(session["params"]["game_mode"] == "訓練場" && session["params"]['NextScene'] == "Get_bookName") ||
+	if((session["params"]["game_mode"] == "訓練場" && session["params"]['NextScene'] == "Get_bookName") ||
 		(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Prompt_SQuAD")){
-	// if(session['params']['first_nameChatbot'] == true || (session["params"].hasOwnProperty("game_mode") && session["params"]['NextScene'] == "Get_bookName")){
-	// if(session["params"].hasOwnProperty("game_mode") && session["params"]['NextScene'] == "Prompt_SQuAD"){
 		// 將魚姐姐圖片轉換成學生自訂的機器人圖片，並顯示右側導覽區和書本頁面區
 		robotID = session["params"]['chatbotStyle'];
 		document.getElementById("fish").src = "/static/image/chatbot/"+robotID+".png";
