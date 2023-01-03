@@ -1,4 +1,5 @@
 import copy
+from elasticsearch.helpers import bulk
 
 
 def updateUser(myUserList, userId, bookName, state, partner):
@@ -46,11 +47,41 @@ def addFeedback(feedbackList, userId, sentiment, feedback):
     feedbackList.insert_one(mydict)
     print(mydict)
 
-def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion_Ans, reason, page_list, question4F, time):
+def add_ChatbotTrainRecord(SQuADList, dbBookName, user_id):
 
-    find_user = {'User_id': speaker_id}
+    find_user = {'User_id': user_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    mydict = {  'Question': question,
+
+    if dbBookName not in userSQuAD_result["QA_record"].keys():
+        userSQuAD_result["QA_record"][dbBookName] = {}
+        userSQuAD_result["QA_record"][dbBookName]['train_count'] = 0
+        userSQuAD_result["QA_record"][dbBookName]['test_record'] = []
+
+    userSQuAD_result["QA_record"][dbBookName]['train_count'] += 1
+    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
+
+def add_ChatbotTestRecord(SQuADList, dbBookName, user_id_chatbot, user_id_challenger, test_count, corect_count):
+
+    find_user = {'User_id': user_id_chatbot}
+    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
+
+    if dbBookName not in userSQuAD_result["QA_record"].keys():
+        userSQuAD_result["QA_record"][dbBookName] = {}
+        userSQuAD_result["QA_record"][dbBookName]['train_count'] = 0
+        userSQuAD_result["QA_record"][dbBookName]['test_record'] = []
+
+    userSQuAD_result["QA_record"][dbBookName]['test_record'].append({
+        'challenger_id': user_id_challenger,
+        'test_count': test_count,
+        'corect_count': corect_count})
+    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
+
+
+def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans, reason, page_list, question4F, time):
+    question = question.replace("?", "").replace("？", "")
+    mydict = {  'User_id': user_id,
+                'chatbotName': chatbotName,
+                'Question': question,
                 'Answer': suggestion_Ans,
                 'reason': reason,
                 'pages': page_list,
@@ -59,8 +90,30 @@ def addKnowledgebaseData(SQuADList, dbBookName, speaker_id, question, suggestion
     if reason == -1:
         del mydict['reason']
 
-    if dbBookName not in userSQuAD_result["QAChatbotData"]["Knowledgebase"].keys():
-        userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName] = []
+    query = [
+        {
+            '_index': dbBookName.lower(),
+            '_op_type': 'index',
+            "_source": mydict
+        }
+    ]
+    bulk(es, query)
 
-    userSQuAD_result["QAChatbotData"]["Knowledgebase"][dbBookName].append(mydict)
-    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
+def search_ES_doc(es, dbBookName, user_id, question):
+    question = question.replace("?", "").replace("？", "")
+    search_ES_data = {"bool": {"must": [
+        {
+            "term": {
+                    "User_id.keyword": user_id
+            }
+        },
+        {
+            "match": {
+                "Question": {
+                    "query": question
+                }
+            }
+        }
+    ]}}
+    result = es.search(index = dbBookName.lower(), query = search_ES_data)
+    return result
