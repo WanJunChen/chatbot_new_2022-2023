@@ -178,6 +178,7 @@
   text-align: center;
 }
 .guide-context button{
+  position: relative;
   width: 80px;
   padding: 3px;
   margin: 2px 0px;
@@ -186,6 +187,7 @@
   text-align: center;   
   border-radius: 5px;
   background: #ebebeb;
+  z-index: 6;
 }
 
 .Example_4F{
@@ -196,6 +198,7 @@
   /* border: 1px solid wheat; */
   background: rgb(163, 123, 98);
   display: none;
+  z-index: 5;
   animation: fadeout 1s;
   box-shadow: 2px 2px 5px rgb(56, 56, 56);
 }
