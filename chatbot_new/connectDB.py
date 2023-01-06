@@ -40,6 +40,13 @@ def addDialog(dialogList, dialog_id, speaker_id, content, time, session_id, prom
     dialogList.insert_one(mydict)
     print(mydict)
 
+def addQADialog(dialogList, dialog_id, speaker_id, content, time, session_id, game_mode, prompt_phase):
+
+    mydict = {'Dialog_id': dialog_id, 'Speaker_id': speaker_id, 'Content': content, 'Game_mode': game_mode, 'Phase': prompt_phase,
+              'Time': time, 'Session_id': session_id}
+    dialogList.insert_one(mydict)
+    print(mydict)
+
 
 def addFeedback(feedbackList, userId, sentiment, feedback):
 
@@ -47,35 +54,41 @@ def addFeedback(feedbackList, userId, sentiment, feedback):
     feedbackList.insert_one(mydict)
     print(mydict)
 
-def add_ChatbotTrainRecord(SQuADList, dbBookName, user_id):
+def update_ChatbotTrainRecord(SQuADList, bookName, user_id):
 
     find_user = {'User_id': user_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
 
-    if dbBookName not in userSQuAD_result["QA_record"].keys():
-        userSQuAD_result["QA_record"][dbBookName] = {}
-        userSQuAD_result["QA_record"][dbBookName]['train_count'] = 0
-        userSQuAD_result["QA_record"][dbBookName]['test_record'] = []
+    if bookName not in userSQuAD_result["QA_record"].keys():
+        userSQuAD_result["QA_record"][bookName] = {}
+        userSQuAD_result["QA_record"][bookName]['train_count'] = 0
+        userSQuAD_result["QA_record"][bookName]['test_record'] = {}
 
-    userSQuAD_result["QA_record"][dbBookName]['train_count'] += 1
+    userSQuAD_result["QA_record"][bookName]['train_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
-def add_ChatbotTestRecord(SQuADList, dbBookName, user_id_chatbot, user_id_challenger, test_count, corect_count):
-
+def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot, user_id_challenger):
+    # 新增一個新的挑戰紀錄
     find_user = {'User_id': user_id_chatbot}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-
-    if dbBookName not in userSQuAD_result["QA_record"].keys():
-        userSQuAD_result["QA_record"][dbBookName] = {}
-        userSQuAD_result["QA_record"][dbBookName]['train_count'] = 0
-        userSQuAD_result["QA_record"][dbBookName]['test_record'] = []
-
-    userSQuAD_result["QA_record"][dbBookName]['test_record'].append({
-        'challenger_id': user_id_challenger,
-        'test_count': test_count,
-        'corect_count': corect_count})
+    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)] = {
+                                                                        'challenger_id': user_id_challenger,
+                                                                        'test_count': 0,
+                                                                        'corect_count': 0}
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
+
+def update_ChatbotTestRecord(SQuADList, Challenge_id, bookName, chatbot_id):
+    find_user = {'User_id': chatbot_id}
+    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
+    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] += 1
+    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
+
+def update_ChatbotCorrectRecord(SQuADList, Challenge_id, BookName, chatbot_id):
+    find_user = {'User_id': chatbot_id}
+    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
+    userSQuAD_result["QA_record"][BookName]['test_record'][str(Challenge_id)]['corect_count'] += 1
+    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
 def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans, reason, page_list, question4F, time):
     question = question.replace("?", "").replace("？", "")

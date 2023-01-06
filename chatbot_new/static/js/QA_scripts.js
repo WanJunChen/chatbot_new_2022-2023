@@ -609,7 +609,22 @@ function analyze_responseData(){
 	add_chatbotTalk();
 
 	/* Step3：考慮場景 */
+	
+	// 判斷顯示輸入框及傳送按鈕
+	if (session["params"]['NextScene'] == "SQuAD_gameMode" ||
+		session["params"]['NowScene'] == "Prompt_SQuAD" ||
+		session["params"]['NowScene'] == "SQuAD_get_Page" ||
+		session["params"]['ask_for_Ans'] == true){
+		document.getElementById("talkwords").style.visibility = "visible";
+		document.getElementById("talksend").style.visibility = "visible";
+	}
 
+	// 判斷隱藏輸入框及傳送按鈕
+	if (session["params"]['NextScene'] == "SQuAD_Get_ChatbotStyle" ||
+		session["params"]['NextScene'] == "Prompt_SQuAD"){
+		document.getElementById("talkwords").style.visibility = "hidden";
+		document.getElementById("talksend").style.visibility = "hidden";
+	}
 	// 判斷同步等待使用者輸入再觸發一次request傳送
 	if (scene["name"] == "check_input" ){
 		sync_waitInput_flag = 1;
@@ -673,7 +688,7 @@ function analyze_responseData(){
 		voicesID = 0;
 
 		// 存在問答遊戲模式，切換遊戲背景
-		console.log("已選擇問答遊戲模式:"+res_data["session"]["params"]["game_mode"]+"，切換遊戲背景");
+		console.log("已選擇問答遊戲模式:"+session["params"]["game_mode"]+"，切換遊戲背景");
 		Background_Img = '';
 		Mode_Words = '';
 		WordBG_color = ''
@@ -704,6 +719,8 @@ function analyze_responseData(){
 	if(session['params']['NextScene'] == "SQuAD_get_Page"){
 		book.innerHTML = "";
 		book_showPages(true);
+		document.getElementById("talkwords").style.visibility = "hidden";
+		document.getElementById("talksend").style.visibility = "visible";
 	}
 
 	//進到下一輪問答時先把頁數的按鈕移除 

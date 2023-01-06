@@ -38,8 +38,8 @@
         <div class="talk_input"  id="talk_input_id">  
           <div class="talk_suggest" id="talk_suggest_id"></div>
           <div class="talk_taskHint" id="talk_taskHint_id"></div>
-          <input type="text" class="talk_word speech_input " lang="zh-CN"  id="talkwords" onkeypress="user_inputPress()" autocomplete="off" >
-          <input type="button" value="傳送" class="talk_sendBtn" id="talksend" onclick="user_sendMsg(Object)">
+          <input type="text" class="talk_word speech_input " lang="zh-CN"  id="talkwords" onkeypress="user_inputPress()" autocomplete="off" style="visibility: hidden;">
+          <input type="button" value="傳送" class="talk_sendBtn" id="talksend" onclick="user_sendMsg(Object)" style="visibility: hidden;">
         </div>
         <div class="talk_show" id="words" >
             
@@ -88,8 +88,9 @@
         <div class="Example_4F Fact" id="Fact">
           <ul>
             <li>Salt最後負責做什麼工作？</li>
-            <li>老Adam開了什麼店鋪？</li>
+            <li>Adam開了什麼店？</li>
             <li>Mandy和Sophie在哪裡玩？</li>
+            <li>Ralph向Hoot借了什麼？</li>
           </ul>
         </div>
 
@@ -97,14 +98,17 @@
         <div class="Example_4F Feeling" id="Feeling">
           <ul>
             <li>你覺得Salt會很壞嗎？</li>
-            <li>你認為Sophie是一個什麼樣的人?</li>
+            <li>你認為Sophie是一個什麼樣的人？</li>
+            <li>你覺得Nick是一個好哥哥嗎？</li>
           </ul>
         </div>
 
         <button class="Finding_btn" onclick="display_guide(this)" value='Finding'>為什麼</button><br>
         <div class="Example_4F Finding" id="Finding">
           <ul>
-            <li>Sophie為什麼很特別？</li>
+            <li>為什麼Sophie是特別的女孩？</li>
+            <li>為什麼大家把Ralph留在小鎮裡？</li>
+            <li>Little Donkey為什麼會被國王選中？</li>
           </ul>
         </div>
 
@@ -112,6 +116,8 @@
         <div class="Example_4F Future" id="Future">
           <ul>
             <li>如果你是Little Donkey，會跟國王走嗎？</li>
+            <li>要怎麼對待患有唐氏症的人呢？</li>
+            <li>如果你跟別人借東西，你會還嗎？</li>
           </ul>
         </div>
 
