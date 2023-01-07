@@ -24,8 +24,11 @@
           <div class="botsay" id="botsay">               
             <div class="dialog-bottom" >哈囉！<br>我是魚姊姊，請先告訴我你的班級唷！</div>
           </div>
-          <div class="head"><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}" ></img></div>
+          <div class="head"><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}" onclick="openChatbotFile()"></img></div>
           
+          <!-- 機器人小檔案(點擊後才會出現) -->
+          <div class="chatbotFile" id="chatbotFile_id"><input type="image" class="closebtn"  src="{{url_for('static', filename='image/close.png')}}" onclick="cloceChatbotFile()"></div>
+
           <div class = "usersay" id="usersay" >               
             <div class="user local" > 
              

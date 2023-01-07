@@ -621,7 +621,8 @@ function analyze_responseData(){
 
 	// 判斷隱藏輸入框及傳送按鈕
 	if (session["params"]['NextScene'] == "SQuAD_Get_ChatbotStyle" ||
-		session["params"]['NextScene'] == "Prompt_SQuAD"){
+		session["params"]['NextScene'] == "Prompt_SQuAD" ||
+		(session["params"]['NextScene'] == "SQuAD_get_Ans" && session["params"]['NowScene'] == "SQuAD_get_Type")){
 		document.getElementById("talkwords").style.visibility = "hidden";
 		document.getElementById("talksend").style.visibility = "hidden";
 	}
@@ -692,16 +693,16 @@ function analyze_responseData(){
 		Background_Img = '';
 		Mode_Words = '';
 		WordBG_color = ''
-		if (res_data["session"]["params"]["game_mode"] == "訓練場"){
+		if (session["params"]["game_mode"] == "訓練場"){
 			Background_Img = TrainingRoom_ImageUrl;
 			WordBG_color = "#302b40";
 		}
-		else if (res_data["session"]["params"]["game_mode"] == "競技場"){
+		else if (session["params"]["game_mode"] == "競技場"){
 			Background_Img = PlayingRoom_ImageUrl;
 			WordBG_color = "#00bfbe";
 		}
 		Mode_Words = '<div class="Mode_Words" style="background-color: ' + WordBG_color + ';">'
-						+ res_data["session"]["params"]["game_mode"]
+						+ session["params"]["game_mode"]
 						+ '</div>';
 		ModeBackground.innerHTML = '<div class="Mode_BGimg" style = "background-image: url('+ Background_Img +');"><center>' + Mode_Words + '</center></div>';
 		ModeBackground.innerHTML = Mode_Words;
@@ -710,27 +711,27 @@ function analyze_responseData(){
 
 	// 在左上方顯示書籍封面、右方book區塊顯示書籍頁面
 	if(session["params"].hasOwnProperty("User_book") && session["params"]['NowScene'] == "Prompt_SQuAD"){
+		// 書本封面
 		book_cover.style.display = "block"
 		book_showPages(false);
 		book_cover.innerHTML = '<img src="' + Book_ImageFileUrl + bookName + '/cover.jpg"></img>';
 	}
 	
-	// 刷新book區塊並加上頁數的多選按鈕
+	// 加上頁數的多選按鈕
 	if(session['params']['NextScene'] == "SQuAD_get_Page"){
-		book.innerHTML = "";
-		book_showPages(true);
+		for(let i = 2; i <= 23; i++){
+			document.getElementById("bookPage" + i).innerHTML = '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>'
+		}
 		document.getElementById("talkwords").style.visibility = "hidden";
 		document.getElementById("talksend").style.visibility = "visible";
 	}
 
 	//進到下一輪問答時先把頁數的按鈕移除 
 	if(session['params']['NowScene'] == "SQuAD_get_Page" && session['params']['NextScene'] == "SQuAD_get_Type"){
-		book.innerHTML = "";
-		book_showPages(false);
-	}
-
-	
-	
+		for(let i = 2; i <= 23; i++){
+			document.getElementById("bookPage" + i).innerHTML = "";
+		}
+	}	
 }
 
 // book頁面顯示
@@ -739,14 +740,20 @@ function book_showPages(show_button){
 	OnePageImgUrl = '';
 	allPageImg = ''
 	for(let i = 2; i <= 23; i++){
-		OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
-		allPageImg += '<div class="page"><img id="page'+ i +'" src="' + OnePageImgUrl + '"></img>';
+		// allPageImg += '<div class="page"><img id="page'+ i +'" src="' + OnePageImgUrl + '"></img>';
+		allPageImg += '<div class="page" id="bookPage' + i + '">';
+		
 		if (show_button == true){
 			allPageImg += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>';
 		}
 		allPageImg += '</div>';
 	}
 	book.innerHTML = allPageImg;
+	for(let i = 2; i <= 23; i++){
+		OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
+		document.getElementById("bookPage" + i).style.backgroundImage = "url('" + OnePageImgUrl + "')";
+		document.getElementById("bookPage" + i).style.backgroundSize = "cover";
+	}
 }
 
 // 改變機器人表情
@@ -802,6 +809,15 @@ function display_guide(object){
 		example_content.style.display = "block";
 	}
 	toHiddenID = object.value
+}
+
+function openChatbotFile(){
+	console.log("打開機器人檔案")
+	document.getElementById("chatbotFile_id").style.display = "block";
+}
+function cloceChatbotFile(){
+	console.log("關閉機器人檔案")
+	document.getElementById("chatbotFile_id").style.display = "none";
 }
 
 // 取得目前時間

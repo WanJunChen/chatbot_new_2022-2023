@@ -1242,11 +1242,13 @@ def Prompt_SQuAD(req):
     accept_question_result = myCommonList.find_one(find_common)
     find_common = {'type': 'common_book_T'}
     common_book_T_result = myCommonList.find_one(find_common)
-    response = choice(common_book_T_result['content']) + "看到右邊的書本內容了嗎，滑動看看吧。<br>" + choice(accept_question_result['content'])+"<br>(請在下方輸入你的問題)"
+    response = ""
     if gameMode == "訓練場":
+        response += choice(common_book_T_result['content'])
         bookName = book_list[int(userInput)-1]
     elif gameMode == "競技場":
         bookName = challenge_bookList[int(userInput)-1]
+    response += "看到右邊的書本內容了嗎，滑動看看吧。<br>" + choice(accept_question_result['content'])+"<br>(請在下方輸入你的問題)"
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['QA_Dialog']
@@ -1553,7 +1555,7 @@ def SQuAD_chatbot_Reply(req):
                 button_item = [{'title': '沒有'}]
                 find_common = {'type': 'common_elaboration'}
                 find_common_result = myCommonList.find_one(find_common)
-                response = choice(find_common_result['content']) + "，這部分在故事的哪幾頁呢？在右邊點選頁數按鈕後，按下傳送就好了喔！"
+                response = choice(find_common_result['content']) + "這部分在故事的哪幾頁呢？在右邊點選頁數按鈕後，按下傳送就好了喔！"
                 nextScene = "SQuAD_get_Page"
             else:
                 button_item = [{'title': '不知道'}]
@@ -1656,7 +1658,7 @@ def SQuAD_get_Reason(req):
     
     find_common = {'type': 'common_elaboration'}
     find_common_result = myCommonList.find_one(find_common)
-    response = choice(find_common_result['content']) + "，這部分在故事的哪幾頁呢？點選頁數後按下傳送就好了喔"
+    response = choice(find_common_result['content']) + "這部分在故事的哪幾頁呢？點選頁數後按下傳送就好了喔"
 
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
