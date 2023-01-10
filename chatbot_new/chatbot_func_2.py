@@ -1500,7 +1500,7 @@ def SQuAD_get_Ans(req):
                 response += choice(find_common_result_answerF['content']) + "，真可惜。<br>你可以繼續問我問題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
-                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>好，你已經問" + str(now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續就回到「主選單」吧。"
+                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>好的，你已經問" + str(now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續就回到「主選單」吧。"
                 button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"
 
@@ -1604,12 +1604,12 @@ def SQuAD_chatbot_Reply(req):
             elif userSay == "錯誤":
                 response += "我的答案竟然是錯的，真可惜。"
 
-            if now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] < testTotalCount-1:
+            if now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] < testTotalCount:
                 response += "<br>你可以繼續問我問題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
-                response += "<br>好的，你已經問" + str(testTotalCount) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續，就按下「繼續玩」。"
-                button_item = [{'title': '繼續玩'}]
+                response += "<br>好的，你已經問" + str(now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續，就按下「主選單」。"
+                button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"
             ask_for_Ans = False
     
