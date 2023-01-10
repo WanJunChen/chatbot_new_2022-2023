@@ -1,6 +1,7 @@
 import json
 import requests
 import pymongo
+import config
 
 def get_squadBook(book, localServer):
     # print(' >>>>> Start "Player Ask then Robot Answer" Conversation! <<<<<')
@@ -11,7 +12,7 @@ def get_squadBook(book, localServer):
                             data={"book": book})  # 要跟inference.py設的一樣
     # 有顯卡那台
     else:
-        resp = requests.post("http://140.115.53.220:4220/squad_getBook",
+        resp = requests.post(config.SQuAD_GPU_ngrok + "/squad_getBook",
                             data={"book": book})  # 要跟inference.py設的一樣
 
     # response的內容會是true或false，代表是否成功比對到書名
