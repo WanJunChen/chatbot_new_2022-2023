@@ -38,6 +38,9 @@ var CE_P=0;
 var CE_A=0;
 var selected_page = []
 var toHiddenID = "Fact"
+var AllTrainContent;
+var leaderboardContent;
+var rankingIndex;
 
 
 // 使用者輸入訊息
@@ -614,17 +617,18 @@ function analyze_responseData(){
 	if (session["params"]['NextScene'] == "SQuAD_gameMode" ||
 		session["params"]['NowScene'] == "Prompt_SQuAD" ||
 		session["params"]['NowScene'] == "SQuAD_get_Page" ||
-		session["params"]['ask_for_Ans'] == true){
-		document.getElementById("talkwords").style.visibility = "visible";
-		document.getElementById("talksend").style.visibility = "visible";
+		session["params"]['ask_for_Ans'] == true ||
+		session["params"]['first_nameChatbot'] == true){
+		document.getElementById("talkwords").removeAttribute("disabled");
+		document.getElementById("talksend").removeAttribute("disabled");
 	}
 
 	// 判斷隱藏輸入框及傳送按鈕
 	if (session["params"]['NextScene'] == "SQuAD_Get_ChatbotStyle" ||
 		session["params"]['NextScene'] == "Prompt_SQuAD" ||
-		(session["params"]['NextScene'] == "SQuAD_get_Ans" && session["params"]['NowScene'] == "SQuAD_get_Type")){
-		document.getElementById("talkwords").style.visibility = "hidden";
-		document.getElementById("talksend").style.visibility = "hidden";
+		(session["params"]['NowScene'] == "SQuAD_get_Ans" && session["params"]['NextScene'] == "SQuAD_get_Type")){
+		document.getElementById("talkwords").disabled = "disabled";
+		document.getElementById("talksend").disabled = "disabled";
 	}
 	// 判斷同步等待使用者輸入再觸發一次request傳送
 	if (scene["name"] == "check_input" ){
@@ -677,18 +681,18 @@ function analyze_responseData(){
 		 	}
 		}	 	
 	}
-
+	// 選擇訓練場或競技場後
 	if((session["params"]["game_mode"] == "訓練場" && session["params"]['NextScene'] == "Get_bookName") ||
 		(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Prompt_SQuAD")){
-		// 將魚姐姐圖片轉換成學生自訂的機器人圖片，並顯示右側導覽區和書本頁面區
 		robotID = session["params"]['chatbotStyle'];
+		// 將魚姐姐圖片轉換成學生自訂的機器人圖片，並顯示右側導覽區和書本頁面區
 		document.getElementById("fish").src = "/static/image/chatbot/"+robotID+".png";
 		document.getElementById("guide_id").style.display = "flex";
-		book.style.display = "block";
+		book.style.display = "none";
 		// 切換機器人聲音
 		voicesID = 0;
 
-		// 存在問答遊戲模式，切換遊戲背景
+		// 存在問答遊戲模式，切換模式
 		console.log("已選擇問答遊戲模式:"+session["params"]["game_mode"]+"，切換遊戲背景");
 		Background_Img = '';
 		Mode_Words = '';
@@ -700,6 +704,7 @@ function analyze_responseData(){
 		else if (session["params"]["game_mode"] == "競技場"){
 			Background_Img = PlayingRoom_ImageUrl;
 			WordBG_color = "#00bfbe";
+			document.getElementById("menu_id").style.visibility = "hidden";
 		}
 		Mode_Words = '<div class="Mode_Words" style="background-color: ' + WordBG_color + ';">'
 						+ session["params"]["game_mode"]
@@ -712,6 +717,7 @@ function analyze_responseData(){
 	// 在左上方顯示書籍封面、右方book區塊顯示書籍頁面
 	if(session["params"].hasOwnProperty("User_book") && session["params"]['NowScene'] == "Prompt_SQuAD"){
 		// 書本封面
+		book.style.display = "block";
 		book_cover.style.display = "block"
 		book_showPages(false);
 		book_cover.innerHTML = '<img src="' + Book_ImageFileUrl + bookName + '/cover.jpg"></img>';
@@ -722,8 +728,10 @@ function analyze_responseData(){
 		for(let i = 2; i <= 23; i++){
 			document.getElementById("bookPage" + i).innerHTML = '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>'
 		}
-		document.getElementById("talkwords").style.visibility = "hidden";
-		document.getElementById("talksend").style.visibility = "visible";
+		// document.getElementById("talkwords").style.visibility = "hidden";
+		// document.getElementById("talksend").style.visibility = "visible";
+		document.getElementById("talkwords").disabled = "disabled"
+		document.getElementById("talksend").removeAttribute("disabled");
 	}
 
 	//進到下一輪問答時先把頁數的按鈕移除 
@@ -731,12 +739,59 @@ function analyze_responseData(){
 		for(let i = 2; i <= 23; i++){
 			document.getElementById("bookPage" + i).innerHTML = "";
 		}
-	}	
+	}
+	// 競技場選機器人時，book區顯示所有機器人資訊
+	if(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Get_bookName"){
+		book.style.display = "block";
+		allUserData = session["params"]['allUserData']
+		allUserData_display = '<table>';
+		for(var i = 0; i < allUserData.length; i++){
+			allUserData_display += '<tr><td style="text-align: center; width: 30%;"><img src="/static/image/chatbot/' + allUserData[i][2] + '.png"></td>';
+			allUserData_display += '<td class="botDataInfo"><p class="highlightText">' + allUserData[i][1] + '</p><br>主人：' + allUserData[i][0][0] + "班 " + allUserData[i][0][1] + "號" + '</td></tr>';
+		}
+		allUserData_display += "</table>";
+		book.innerHTML = allUserData_display;
+	}
+
+	/* 機器人檔案內容 */
+	if(session["params"]['NextScene'] == "Prompt_SQuAD" && session["params"]['game_mode'] == "訓練場"){
+		chatbot_info_display = "";
+		robotID = session["params"]['chatbotStyle'];
+		chatbot_name = '<p class="info_text" id="chatbotFile_botName_id">' + session["params"]['chatbotName'] + '</p>';
+		user_id = '<p class="info_text" id="chatbotFile_userId_id">' + session["params"]['User_id'].replace("_", "班 ") + '號</p>';
+		document.getElementById("menu_id").style.visibility = "visible";
+		document.getElementById("chatbotRecord_content_id").style.visibility = "visible";
+		chatbot_info_display += '<img id="bot_style" class="info_img"></img>' + chatbot_name;
+		chatbot_info_display += '<img id="user_id" class="info_img" src="/static/image/user-icon.png"></img>' + user_id;
+		
+		document.getElementById("chatbotFile_botInfo_id").innerHTML = chatbot_info_display;
+		document.getElementById("bot_style").src = "/static/image/chatbot/"+robotID+".png";
+		AllTrainContent = session["params"]['AllTrainContent'];
+		load_trainRecord_chatbotFile(AllTrainContent);
+
+	}
+	if(session["params"].hasOwnProperty('AllTrainContent')){
+		console.log("更新訓練日誌");
+		AllTrainContent = session["params"]['AllTrainContent'];
+		load_trainRecord_chatbotFile(AllTrainContent);
+		delete session["params"]['AllTrainContent'];
+	}
+	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('rankingIndex')){
+		console.log("更新排行榜");
+		leaderboardContent = session["params"]['leaderboardContent'];
+		rankingIndex = session["params"]['rankingIndex'];
+		console.log(leaderboardContent)
+		load_leaderboard_chatbotFile(leaderboardContent, rankingIndex, session['params']['User_id'])
+		delete session["params"]['leaderboardContent'];
+		delete session["params"]['rankingIndex'];
+	}
+
 }
 
 // book頁面顯示
 function book_showPages(show_button){
 	bookName = session["params"]["User_book"];
+	book.innerHTML = "";
 	OnePageImgUrl = '';
 	allPageImg = ''
 	for(let i = 2; i <= 23; i++){
@@ -755,6 +810,7 @@ function book_showPages(show_button){
 		document.getElementById("bookPage" + i).style.backgroundSize = "cover";
 	}
 }
+
 
 // 改變機器人表情
 function change_chatbotMood(){
@@ -810,15 +866,112 @@ function display_guide(object){
 	}
 	toHiddenID = object.value
 }
+function load_trainRecord_chatbotFile(AllTrainContent){
+	var AllTrainContent_display = '';
+	var index = 0;
+	document.getElementById("chatbotRecord_content_id").innerHTML = '';
+	// console.log(AllTrainContent);
+	if(AllTrainContent["hits"]["hits"].length == 0){
+		AllTrainContent_display = '你還沒有訓練過' + session['params']['chatbotName'] + '喔！';
+		document.getElementById("chatbotRecord_content_id").innerHTML = AllTrainContent_display;
+	}
+	for(var i = AllTrainContent["hits"]["hits"].length; i > 0; i --){
+		index += 1;
+		AllTrainContent_display = '';
+		AllTrainContent_display += '<div class="chatbotFile_QA"><span class="frame QAbook">書名</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_index"].replace(/_/g, " ") + '</span><br>';
+		AllTrainContent_display += '<span class="frame Q">問題</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_source"]["Question"] + '?</span><br>';
+		AllTrainContent_display += '<span class="frame A">解答</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_source"]["Answer"] + '</span></div>';
+		AllTrainContent_display += '<div class="Num">' + index + '</div>'
+		document.getElementById("chatbotRecord_content_id").innerHTML += AllTrainContent_display + "<hr>";
+	}
+}
 
+function load_leaderboard_chatbotFile(leaderboardContent, rankingIndex, user_id){
+	var leaderboardContent_display = '';
+	document.getElementById("leaderboard_content_id").innerHTML = '';
+	leaderboardContent_display = '<table><tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
+	for(var i = 0; i < rankingIndex.length; i ++){
+		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
+			leaderboardContent_display += '<tr><td class="table-center highlightBG"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
+			leaderboardContent_display += '<td class="highlightBG">名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
+			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['test_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['corect_count_sum'];
+			leaderboardContent_display += '<br>總分：' + leaderboardContent[rankingIndex[i]]['score'] + "</td>";
+			if(leaderboardContent[rankingIndex[i]]['score'] == 0){
+				leaderboardContent_display += '<td class="Num table-center highlightBG"> </td>';
+			}
+			else{
+				if(i < 3){
+					leaderboardContent_display += '<td class="Num table-center highlightBG" style="color:yellow;">' + (i+1) + '</td>';
+				}
+				else{
+					leaderboardContent_display += '<td class="Num table-center highlightBG">' + (i+1) + '</td>';
+				}
+			}
+		}
+		else{
+			leaderboardContent_display += '<tr><td class="table-center"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
+			leaderboardContent_display += '<td>名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
+			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['test_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['corect_count_sum'];
+			leaderboardContent_display += '<br>總分：' + leaderboardContent[rankingIndex[i]]['score'] + "</td>";
+			if(leaderboardContent[rankingIndex[i]]['score'] == 0){
+				leaderboardContent_display += '<td class="Num table-center"> </td>';
+			}
+			else{
+				if(i < 3){
+					leaderboardContent_display += '<td class="Num table-center" style="color:yellow;">' + (i+1) + '</td>';
+				}
+				else{
+					leaderboardContent_display += '<td class="Num table-center">' + (i+1) + '</td>';
+				}
+
+			}
+		}
+	}
+	leaderboardContent_display += '</table>'
+	document.getElementById("leaderboard_content_id").innerHTML += leaderboardContent_display;
+}
 function openChatbotFile(){
-	console.log("打開機器人檔案")
 	document.getElementById("chatbotFile_id").style.display = "block";
 }
 function cloceChatbotFile(){
-	console.log("關閉機器人檔案")
 	document.getElementById("chatbotFile_id").style.display = "none";
 }
+
+function backToMainMenu(){
+	handler['name'] = "SQuAD_gameMode";
+	document.getElementById("book_id").innerHTML = ""
+	document.getElementById("book-cover_id").innerHTML = ""
+	document.getElementById("book_id").style.display = "none";
+	document.getElementById("guide_id").style.display = "none";
+	window.speechSynthesis.cancel();
+	cloceChatbotFile();
+
+	send_userJson();
+}
+
+function openChatbotRecord(){
+	// 分頁：機器人檔案
+	// 按鈕變化
+	document.getElementById("chatbotRecordBtn_id").style.background = "#523b6e";
+	document.getElementById("chatbotRecordBtn_id").style.color = "white";
+	document.getElementById("leaderboardBtn_id").style.background = "#d7dee0";
+	document.getElementById("leaderboardBtn_id").style.color = "black";	
+	// 下方資訊內容變化
+	document.getElementById("chatbotRecord_content_id").style.visibility = "visible";	
+	document.getElementById("leaderboard_content_id").style.visibility = "hidden";	
+}
+function openLeaderboard(){
+	// 分頁：排行榜
+	// 按鈕變化
+	document.getElementById("leaderboardBtn_id").style.background = "#523b6e";
+	document.getElementById("leaderboardBtn_id").style.color = "white";
+	document.getElementById("chatbotRecordBtn_id").style.background = "#d7dee0";
+	document.getElementById("chatbotRecordBtn_id").style.color = "black";
+	// 下方資訊內容變化
+	document.getElementById("leaderboard_content_id").style.visibility = "visible";
+	document.getElementById("chatbotRecord_content_id").style.visibility = "hidden";	
+}
+
 
 // 取得目前時間
 function getNowFormatDate() {

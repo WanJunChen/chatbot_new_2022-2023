@@ -1,6 +1,6 @@
 import copy
 from elasticsearch.helpers import bulk
-
+import numpy as np
 
 def updateUser(myUserList, userId, bookName, state, partner):
     bookTalkSummary = {'Finish': state, 'Partner': partner}
@@ -129,4 +129,60 @@ def search_ES_doc(es, dbBookName, user_id, question):
         }
     ]}}
     result = es.search(index = dbBookName.lower(), query = search_ES_data)
+    return result
+
+def find_DB_AllChatbotScore(SQuADList):
+    userSQuAD_result = SQuADList.find()
+    result = []
+    scoreList = []
+    for user in userSQuAD_result:
+        test_count_sum = 0
+        corect_count_sum = 0
+        user_score = {}
+        for book in user['QA_record']:
+            for index in user['QA_record'][book]['test_record']:
+                test_count_sum += user['QA_record'][book]['test_record'][index]['test_count']
+                corect_count_sum += user['QA_record'][book]['test_record'][index]['corect_count']
+        user_score['User_id'] = user['User_id']
+        user_score['chatbotName'] = user['chatbotName']
+        user_score['chatbotStyle'] = user['chatbotStyle']
+        user_score['test_count_sum'] = test_count_sum
+        user_score['corect_count_sum'] = corect_count_sum
+        if test_count_sum == 0:
+            score = 0
+        else:
+            score = int((corect_count_sum/test_count_sum) * 100)
+        scoreList.append(score)
+        user_score['score'] = score
+        result.append(user_score)
+    rankingIndex = list(map(int, np.argsort(scoreList)[::-1]))
+
+    return result, rankingIndex
+
+def search_ES_TrainContent(es, user_id):
+    search_ES_data = {
+        "query": {
+            "bool": {
+            "must": [
+                {
+                "bool": {
+                    "should": [
+                    {
+                        "match": {
+                        "User_id": user_id
+                        }
+                    }
+                    ],
+                    "minimum_should_match": 1
+                }
+                }
+            ],
+            "filter": [],
+            "should": [],
+            "must_not": []
+            }
+        },
+        "size": 100
+    }
+    result = es.search(search_ES_data)
     return result

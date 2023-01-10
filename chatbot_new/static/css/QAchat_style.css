@@ -98,8 +98,21 @@
     border:5px solid #ffffff;
     background: rgba(249,249,249,0.3);
     overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
     display: none;
     border-radius: 0.8em;
+  }
+  .book_mob table{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .book_mob table img{
+    height: 100%;
+  }
+  .book_mob table td{
+    height: 60px;
+    padding: 10px;
   }
 }
 
@@ -219,6 +232,7 @@
   border:5px solid #ffffff;
   background: rgba(249,249,249,0.3);
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
   display: none;
   border-radius: 0.8em;
 }
@@ -266,6 +280,27 @@
 .page .round {
   border-radius: 25px; 
   box-shadow: 2px 2px 5px gray;
+}
+.book table{
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.book table img{
+  height: 100%;
+}
+.book table td{
+  height: 60px;
+  padding: 10px;
+  
+}
+.botDataInfo{
+  background: #b8cacd;
+}
+.highlightText{
+  font-weight: bold;
+  color: #3687a5;
+  font-size: 20px;
 }
 
 
@@ -585,7 +620,14 @@
   bottom: -100px;
   z-index: 1;
 }
-.head:active {
+.menu{
+  position:absolute;
+  width: 8%;
+  top: 10px;
+  left: 10px;
+  visibility: hidden;
+}
+.menu:active {
   filter: brightness(70%);
 }
 
@@ -625,20 +667,154 @@
 .chatbotFile{
   position: absolute;
   width: 90%;
-  height: 70%;
-  background:#666666;
+  height: 75%;
+  background:#606060cc;
   top: 10%;
   left:5%;
+  color: white;
   border-radius: 20px;
   display: none;
   animation: fadeout 0.8s;
+  box-shadow: 2px 2px 5px rgb(56, 56, 56);
   z-index: 7;
 }
-.closebtn{
+.closebtn, .homeBtn{
   position: relative;
-  height: 20px;
-  margin: 15px;
+  height: 5%;
+  margin: 2.5%;
   float: right;
+}
+.closebtn:active {
+  filter: brightness(50%);
+}
+.chatbotFile_head{
+  position: relative;
+  height: 6%;
+  width: 70%;
+  margin: 2.5%;
+  float: left;
+}
+.chatbotFile_head input{
+  position: relative;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #d7dee0;
+  font-size: 16px;
+  margin: 0 1%;
+  padding: 1% 3%;
+}
+.chatbotFile_botInfo{
+  position: relative;
+  float: left;
+  height: 8%;
+  width: 91.5%;
+  margin: 1% 2.5%;
+  background: white;
+  color: #000;
+  display: flex;
+  border-radius: 8px;
+  padding: 5px 10px;
+  /* justify-content: center; */
+  align-items: center;
+}
+.chatbotFile_botInfo .info_text{
+  width: 170px;
+}
+.chatbotFile_botInfo .info_img{
+  width: 9%;
+  height: 90%;
+  margin: 0 20px 0 10px;
+}
+.chatbotFile_content{
+  position: relative;
+  height: 70%;
+  width: 92%;
+  margin: 2%;
+  padding: 2%;
+  float: left;
+  background: #333;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.chatbotRecord_content{
+  position: absolute;
+  width: 96%;
+  height: 96%;
+  visibility: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+.leaderboard_content{
+  position: absolute;
+  width: 96%;
+  height: 96%;
+  visibility: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+.leaderboard_content table{
+  width: 100%;
+  border-collapse: collapse;
+}
+.leaderboard_content table,th,tr,td{
+  border-bottom: solid 1px #ffffff;
+  padding: 5px;
+}
+.leaderboard_content .table-center{
+  text-align: center;
+}
+.leaderboard_content img{
+  width: 60px;
+}
+.leaderboard_content .highlightBG{
+  background:#1c1c1c;
+}
+.leaderboard_content .Num{
+  color: #9bb8ca;
+  font-size: 40px;
+  text-align: center;
+}
+.Num {
+  position: relative;
+  width: 15%;
+  padding: 5px;
+  line-height: 2;
+}
+.chatbotRecord_content::-webkit-scrollbar { display: none; }
+.leaderboard_content::-webkit-scrollbar { display: none; }
+.chatbotFile_QA{
+  height: auto;
+  width: 75%;
+  padding: 3px;
+  margin: 3px;
+  line-height: 2;
+  display: inline-block;
+  vertical-align: middle;
+}
+.chatbotFile_QA .frame{
+  padding: 3px 6px;
+  color: #000;
+  border-radius: 3px;
+  margin: 0 6px 0 0;
+}
+.chatbotFile_QA .QAbook{
+  background: #ffffff;
+}
+.chatbotFile_QA .Q{
+  background: #b8cacd;
+}
+.chatbotFile_QA .A{
+  background: rgb(255, 225, 162);
+}
+.chatbotRecord_content .Num{
+  float: right;
+  height: 19%;
+  color: #585858;
+  font-size: 30px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 html,

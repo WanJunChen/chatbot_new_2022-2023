@@ -20,15 +20,29 @@
 <body>
     <!-- 對話顯示 -->
     <div class="talk_content" id="talk_content_id" style="position:absolute;">	 
+      <img id="menu_id" class="menu" src="{{url_for('static', filename='image/menu.png')}}" onclick="openChatbotFile()">
         <div class="info_content" id="info_content_id">  
           <div class="botsay" id="botsay">               
             <div class="dialog-bottom" >哈囉！<br>我是魚姊姊，請先告訴我你的班級唷！</div>
           </div>
-          <div class="head"><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}" onclick="openChatbotFile()"></img></div>
+          <div class="head" id="mainBot" onclick=""><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}"></img></div>
           
           <!-- 機器人小檔案(點擊後才會出現) -->
-          <div class="chatbotFile" id="chatbotFile_id"><input type="image" class="closebtn"  src="{{url_for('static', filename='image/close.png')}}" onclick="cloceChatbotFile()"></div>
-
+          <div class="chatbotFile" id="chatbotFile_id">
+            <input type="image" class="closebtn"  src="{{url_for('static', filename='image/close.png')}}" onclick="cloceChatbotFile()">
+            <input type="image" class="homeBtn" id="homeBtn_id" src="{{url_for('static', filename='image/home.png')}}" onclick="backToMainMenu()">
+            <div class="chatbotFile_head">
+              <input type="button" class="chatbotRecordBtn" id="chatbotRecordBtn_id" value="訓練日誌" onclick="openChatbotRecord()" style="background: #523b6e; color:white;">
+              <input type="button" class="leaderboardBtn" id="leaderboardBtn_id" value="競技場排行榜" onclick="openLeaderboard()">
+            </div>
+            <div class="chatbotFile_botInfo" id="chatbotFile_botInfo_id"></div>
+            <div class="chatbotFile_content" id="chatbotFile_content_id">
+              <div class="chatbotRecord_content" id="chatbotRecord_content_id"></div>
+              <div class="leaderboard_content" id="leaderboard_content_id"></div>
+            </div>
+          </div>
+          <!--  -->
+          
           <div class = "usersay" id="usersay" >               
             <div class="user local" > 
              
@@ -41,8 +55,8 @@
         <div class="talk_input"  id="talk_input_id">  
           <div class="talk_suggest" id="talk_suggest_id"></div>
           <div class="talk_taskHint" id="talk_taskHint_id"></div>
-          <input type="text" class="talk_word speech_input " lang="zh-CN"  id="talkwords" onkeypress="user_inputPress()" autocomplete="off" style="visibility: hidden;">
-          <input type="button" value="傳送" class="talk_sendBtn" id="talksend" onclick="user_sendMsg(Object)" style="visibility: hidden;">
+          <input type="text" class="talk_word speech_input " lang="zh-CN"  id="talkwords" onkeypress="user_inputPress()" autocomplete="off" disabled="disabled">
+          <input type="button" value="傳送" class="talk_sendBtn" id="talksend" onclick="user_sendMsg(Object)" disabled="disabled">
         </div>
         <div class="talk_show" id="words" >
             
