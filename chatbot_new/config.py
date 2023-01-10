@@ -1,0 +1,1 @@
+SQuAD_GPU_ngrok = "http://a892-2a0e-b107-1954-53-2821-1d74-6aa3-a9d5.jp.ngrok.io"
