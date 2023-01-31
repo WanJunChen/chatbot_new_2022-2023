@@ -737,7 +737,7 @@
   border-radius: 8px;
   font-size: 14px;
 }
-.chatbotRecord_content{
+.trainRecord_content, .trainLeaderboard_content, .testRecord_content, .testLeaderboard_content{
   position: absolute;
   width: 96%;
   height: 94%;
@@ -745,13 +745,14 @@
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
 }
-.testLeaderboard_content{
-  position: absolute;
-  width: 96%;
-  height: 96%;
-  visibility: hidden;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
+.trainRecord_content .Num{
+  float: right;
+  height: 19%;
+  color: #585858;
+  font-size: 30px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 .testLeaderboard_content table{
   width: 100%;
@@ -781,7 +782,9 @@
   padding: 5px;
   line-height: 2;
 }
-.chatbotRecord_content::-webkit-scrollbar { display: none; }
+.trainRecord_content::-webkit-scrollbar { display: none; }
+.trainLeaderboard_content::-webkit-scrollbar { display: none; }
+.testRecord_content::-webkit-scrollbar { display: none; }
 .testLeaderboard_content::-webkit-scrollbar { display: none; }
 .chatbotFile_QA{
   height: auto;
@@ -807,15 +810,7 @@
 .chatbotFile_QA .A{
   background: rgb(255, 225, 162);
 }
-.chatbotRecord_content .Num{
-  float: right;
-  height: 19%;
-  color: #585858;
-  font-size: 30px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
+
 
 html,
 body {

@@ -634,13 +634,16 @@ def SQuAD_Get_ChatbotStyle(req):
         response = "歡迎來到競技場！你可以挑戰一位機器人，問他" + str(testTotalCount) + "個問題，看看他能不能答出來喔！你今天想挑戰哪個機器人呢？"
         button_item = []
         AllUserData, rankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
-        # 移除登入者本人的資料，並將User_id切分出班級和座號
+        # 移除AllUserData中User_id本人的資料
+        print(AllUserData)
         for i in range(len(AllUserData)):
             if AllUserData[i]['User_id'] == user_id:
-                AllUserData.pop(i)
-            else:
-                User_id_split = AllUserData[i]['User_id'].split("_")
-                AllUserData[i]['User_id'] = User_id_split
+                del AllUserData[i]
+                break
+        # 將User_id切分出班級和座號
+        for i in range(len(AllUserData)):
+            User_id_split = AllUserData[i]['User_id'].split("_")
+            AllUserData[i]['User_id'] = User_id_split
         # AllUserData依照User_id排序
         AllUserData.sort(key = lambda AllUserData : list(map(int, AllUserData['User_id'])))
         for i in range(len(AllUserData)):
@@ -1528,22 +1531,21 @@ def SQuAD_get_Ans(req):
                             {'title': '錯誤'}]
             nextScene = "SQuAD_chatbot_Reply"
         else:
-            # 更新測驗紀錄
-            connectDB.update_ChatbotTestRecord_content(myUserSQuADList, Challenge_id, bookName, now_user['User_id'], UserQuestion, None, False)
-            # SQuADList, Challenge_id, bookName, chatbot_id, question, answer, result
-            test_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']
+            test_count = len(now_user['QA_record'][bookName]['test_record'][str(Challenge_id)]['content'])
             correct_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count']
             print("test_count:", test_count, " correct_count:", correct_count)
             if test_count < testTotalCount-1:
-                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>你可以繼續問我問題囉！"
+                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>你可以繼續問我第" + str(test_count+2) + "題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
                 response += choice(find_common_result_answerF['content']) + "，真可惜。<br>好的，你已經問" + str(test_count+1) + "題了喔，"
-                response += "本次挑戰" + chatbotName +"答對了" + str(correct_count) + "題，總共" + str(correct_count/test_count * 100) +"分。"
+                response += chatbotName +"答對了" + str(correct_count) + "題，答對率是" + str(int(correct_count/(test_count+1) * 100)) +"%。"
                 response += "<br>回主選單繼續玩吧~"
                 button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"
-
+            # 更新測驗紀錄
+            connectDB.update_ChatbotTestRecord_content(myUserSQuADList, Challenge_id, bookName, now_user['User_id'], UserQuestion, None, False)
+            
     # 記錄對話過程
     connectDB.addQADialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, req['session']['params']['thinking_word'], time, session_id, gameMode, req['scene']['name'])
     connectDB.addQADialog(myDialogList, dialog_id + 2, 'chatbot ' + chatbotName, response, time, session_id, gameMode, req['scene']['name'])
@@ -1639,7 +1641,7 @@ def SQuAD_chatbot_Reply(req):
             Challenge_id = req['session']['params']['Challenge_id']
             find_user = {'chatbotName': chatbotName}
             now_user = myUserSQuADList.find_one(find_user)
-            test_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']
+            test_count = len(now_user['QA_record'][bookName]['test_record'][str(Challenge_id)]['content'])
             correct_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count']
             print("test_count:", test_count, " correct_count:", correct_count)
             if userSay == "正確":
@@ -1653,11 +1655,11 @@ def SQuAD_chatbot_Reply(req):
                 response += choice(find_common_result_answerF['content']) + "，真可惜。"
 
             if test_count < testTotalCount-1:
-                response += "<br>你可以繼續問我問題囉！"
+                response += "<br>你可以繼續問我第" + str(test_count+2) + "題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
                 response += "<br>好的，你已經問" + str(test_count+1) + "題了喔，"
-                response += "本次挑戰" + chatbotName +"答對了" + str(correct_count) + "題，總共" + str(correct_count/(test_count+1) * 100) +"分。"
+                response += chatbotName +"答對了" + str(correct_count) + "題，答對率是" + str(int(correct_count/(test_count+1) * 100)) +"%。"
                 response += "<br>回主選單繼續玩吧~"
                 button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"

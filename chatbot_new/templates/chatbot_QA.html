@@ -32,16 +32,18 @@
             <input type="image" class="closebtn"  src="{{url_for('static', filename='image/close.png')}}" onclick="cloceChatbotFile()">
             <input type="image" class="homeBtn" id="homeBtn_id" src="{{url_for('static', filename='image/home.png')}}" onclick="backToMainMenu()">
             <div class="chatbotFile_head">
-              <input type="button" class="chatbotRecordBtn" id="chatbotRecordBtn_id" value="訓練日誌" onclick="openChatbotRecord()" style="background: #523b6e; color:white;">
-              <input type="button" class="leaderboardBtn" id="trainLeaderboardBtn_id" value="訓練題數排行榜" onclick="openTrainLeaderboard()">
+              <input type="button" class="trainRecordBtn" id="trainRecordBtn_id" value="訓練日誌" onclick="openTrainRecord()" style="background: #523b6e; color:white;">
+              <input type="button" class="trainLeaderboardBtn" id="trainLeaderboardBtn_id" value="訓練題數排行榜" onclick="openTrainLeaderboard()">
               <br>
-              <input type="button" class="leaderboardBtn" id="testRecordBtn_id" value="挑戰日誌" onclick="openTestRecord()">
-              <input type="button" class="leaderboardBtn" id="testLeaderboardBtn_id" value="競技場排行榜" onclick="openTestLeaderboard()">
+              <input type="button" class="testRecordBtn" id="testRecordBtn_id" value="挑戰日誌" onclick="openTestRecord()">
+              <input type="button" class="testLeaderboardBtn" id="testLeaderboardBtn_id" value="競技場排行榜" onclick="openTestLeaderboard()">
             </div>
             <div class="chatbotFile_botInfo" id="chatbotFile_botInfo_id"></div>
             <!-- 以下可以切換不同頁面 -->
             <div class="chatbotFile_content" id="chatbotFile_content_id">
-              <div class="chatbotRecord_content" id="chatbotRecord_content_id"></div>
+              <div class="trainRecord_content" id="trainRecord_content_id"></div>
+              <div class="trainLeaderboard_content" id="trainLeaderboard_content_id"></div>
+              <div class="testRecord_content" id="testRecord_content_id"></div>
               <div class="testLeaderboard_content" id="testLeaderboard_content_id"></div>
             </div>
           </div>

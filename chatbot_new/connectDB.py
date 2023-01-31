@@ -73,16 +73,8 @@ def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot,
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)] = {
                                                                         'challenger_id': user_id_challenger,
-                                                                        'test_count': 0,
                                                                         'correct_count': 0,
                                                                         'content': []}
-    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
-# 20230128待修改:
-
-def update_ChatbotTestRecord(SQuADList, Challenge_id, bookName, chatbot_id):
-    find_user = {'User_id': chatbot_id}
-    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
 def update_ChatbotCorrectRecord(SQuADList, Challenge_id, bookName, chatbot_id):
@@ -150,7 +142,7 @@ def find_DB_AllChatbotScore(SQuADList):
         user_score = {}
         for book in user['QA_record']:
             for index in user['QA_record'][book]['test_record']:
-                test_count_sum += user['QA_record'][book]['test_record'][index]['test_count']
+                test_count_sum += len(user['QA_record'][book]['test_record'][index]['content'])
                 correct_count_sum += user['QA_record'][book]['test_record'][index]['correct_count']
         user_score['User_id'] = user['User_id']
         user_score['chatbotName'] = user['chatbotName']
