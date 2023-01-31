@@ -33,11 +33,13 @@ book_list = [   'Ralph the Puppy',
                 'My Special Friend',
                 'Little Donkey',
                 'Salt and Sugar']
-Question_4F = { 'Fact'      :'故事內容',
-                'Feeling'   :'我的感受',
-                'Finding'   :'為什麼',
-                'Future'    :'如果...',
-                'Other'    :'其他'}
+Question_Type = { 'Character'         :'人物',
+                'Setting'           :'時間地點',
+                'Action'            :'行為',
+                'Feeling'           :'人物感受',
+                'Causal_relations'  :'事情原因',
+                'Outcome_resolution':'事情結果',
+                'Prediction'        :'故事延伸'}
 # 競技場的回合數
 testTotalCount = 6
 
@@ -513,7 +515,10 @@ def SQuAD_gameMode(req):
     print("scene: 選擇訓練場或競技場")
     userClass = req['session']['params']['User_class']
     response = '看到下面的兩個按鈕了嗎？<br>在訓練場中，你可以教自己的機器人回答各種有關故事的問題。在競技場中，你可以挑戰其他同學的機器人，考考他們的能力喔！<br>你想進入什麼模式呢？'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-    user_id = userClass + '_' + req['session']['params']['User_say'].replace('號', '')
+    if "User_id" in req['session']['params']:
+        user_id = req['session']['params']['User_id']
+    else:
+        user_id = userClass + '_' + req['session']['params']['User_say'].replace('號', '')
     print('使用者：' + str(user_id))
     response_dict = {
         "prompt": {
@@ -550,7 +555,10 @@ def SQuAD_Get_ChatbotStyle(req):
     connect()
     userClass = req['session']['params']['User_class']
     user_id = req['session']['params']['User_id']
-    gameMode = req['intent']['query']
+    if 'game_mode' in req['session']['params']:
+        gameMode = req['session']['params']['game_mode']
+    else:
+        gameMode = req['intent']['query']
     find_user = {'User_id': user_id}
     now_user = myUserSQuADList.find_one(find_user)
     response = ''
@@ -625,19 +633,18 @@ def SQuAD_Get_ChatbotStyle(req):
         print("scene: 跳轉到Get_bookName")
         response = "歡迎來到競技場！你可以挑戰一位機器人，問他" + str(testTotalCount) + "個問題，看看他能不能答出來喔！你今天想挑戰哪個機器人呢？"
         button_item = []
-        AllUserData = []
-        for UserChatbot in myUserSQuADList.find():
-            if UserChatbot['User_id'] != user_id:
-                AllUserData.append([
-                    UserChatbot['User_id'].split("_"),
-                    UserChatbot['chatbotName'],
-                    UserChatbot['chatbotStyle']
-                    ])
-        # AllUserData依照User_id排序
-        AllUserData.sort(key = lambda AllUserData : list(map(int, AllUserData[0])))
-
+        AllUserData, rankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
+        # 移除登入者本人的資料，並將User_id切分出班級和座號
         for i in range(len(AllUserData)):
-            button_item.append({'title': AllUserData[i][1]})
+            if AllUserData[i]['User_id'] == user_id:
+                AllUserData.pop(i)
+            else:
+                User_id_split = AllUserData[i]['User_id'].split("_")
+                AllUserData[i]['User_id'] = User_id_split
+        # AllUserData依照User_id排序
+        AllUserData.sort(key = lambda AllUserData : list(map(int, AllUserData['User_id'])))
+        for i in range(len(AllUserData)):
+            button_item.append({'title': AllUserData[i]['chatbotName']})
         response_dict = {
             "prompt": {
                 "firstSimple": {
@@ -880,16 +887,46 @@ def Get_bookName(req):
             user_result = myUserSQuADList.find_one(find_user)
             print("現在被選中的機器人是", user_result)
             chatbotStyle = user_result['chatbotStyle']
-            response = "嗨！我是" + chatbotName + "，以下是我有讀過的書，你可以挑一本來考我喔！"
+            
             # 只提供此機器人學過的故事作為按鈕
             index = 0
             global challenge_bookList
             challenge_bookList = []
-            for key, value in user_result['QA_record'].items():
-                response += "<br>" + str(index + 1) + ". " + key
-                challenge_bookList.append(key)
-                button_item.append({'title': index + 1})
-                index += 1
+            if len(user_result['QA_record']) != 0:
+                response = "嗨！我是" + chatbotName + "，以下是我有讀過的書，你可以挑一本來考我喔！"
+                for key, value in user_result['QA_record'].items():
+                    response += "<br>" + str(index + 1) + ". " + key
+                    challenge_bookList.append(key)
+                    button_item.append({'title': index + 1})
+                    index += 1
+            else:
+                response = chatbotName + "的主人還沒有跟他分享任何故事，去挑戰其他人吧。"
+                response_dict = {
+                    "prompt": {
+                        "firstSimple": {
+                            "speech": [response],
+                            "text": [response],
+                            "delay": [2],
+                            "expression": "happy"
+                        },
+                        "suggestions": [{'title':"返回"}]
+                    },
+                    "scene": {
+                        "next": {
+                            'name': 'SQuAD_Get_ChatbotStyle'
+                        }
+                    },
+                    "session": {
+                        "params": {
+                            "User_id": user_id,
+                            "User_class": userClass,
+                            "game_mode": gameMode,
+                            "NextScene": "SQuAD_Get_ChatbotStyle"
+                        }
+                    }
+                }
+                
+                return response_dict
         
         leaderboardContent, rankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
         response_dict = {
@@ -1332,7 +1369,7 @@ def Prompt_SQuAD(req):
     return response_dict
 
 def SQuAD_get_Type(req):
-    print('scene:  (SQuAD)詢問4F的問句類型')
+    print('scene:  (SQuAD)詢問Type的問句類型')
     session_id = req['session']['id']
     user_id = req['session']['params']['User_id']
     time = req['user']['lastSeenTime']
@@ -1346,7 +1383,7 @@ def SQuAD_get_Type(req):
     response = '你的這個問題「XXX」是哪一類的問題呢？'
     response = response.replace('XXX', userSay)
     button_item = []
-    for key, value in Question_4F.items():
+    for key, value in Question_Type.items():
         button_item.append({'title': value})
 
     dialog_index = myDialogList.find().count()
@@ -1402,12 +1439,12 @@ def SQuAD_get_Ans(req):
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['QA_Dialog']
     button_item = []
-    User_question4F = ''
+    User_questionType = ''
     if gameMode == "訓練場":
         UserQuestion = req['session']['params']['User_question']
-        for key, value in Question_4F.items():
+        for key, value in Question_Type.items():
             if userInput == value:
-                User_question4F = key
+                User_questionType = key
         find_user = {'User_id': user_id}
         now_user = myUserSQuADList.find_one(find_user)
     elif gameMode == "競技場":
@@ -1437,8 +1474,9 @@ def SQuAD_get_Ans(req):
     answerFrom = ''
     ask_for_Ans = False
     # 從ElasticSearch知識庫中找紀錄
-    if dbBookName in now_user["QA_record"].keys():
-        result = connectDB.search_ES_doc(es, dbBookName, now_user['User_id'], UserQuestion)
+    if bookName in now_user["QA_record"].keys():
+        ESBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+        result = connectDB.search_ES_doc(es, ESBookName, now_user['User_id'], UserQuestion)
         # 若UserQuestion有匹配到相似問句
         if len(result["hits"]["hits"]) != 0:
             print("ES_Knowledgebase中匹配到的紀錄:", result["hits"]["hits"])
@@ -1477,30 +1515,32 @@ def SQuAD_get_Ans(req):
             button_item = [ {'title': '正確'},
                             {'title': '錯誤'}]
         else:
-            # 依照4F種類的不同，有不同的詢問解答方式
-            if User_question4F == "Feeling" or User_question4F == "Future":
-                response = choice(find_common_result_answerF['content']) + "，你覺得呢？如果不知道就按下「不知道」"
-            else:
-                response = choice(find_common_result_answerF['content']) + "，" + choice(find_common_result_askAnswer['content']) + "如果不知道就按下「不知道」"
+            response = choice(find_common_result_answerF['content']) + "，" + choice(find_common_result_askAnswer['content']) + "如果不知道就按下「不知道」"
             ask_for_Ans = True
             button_item = [{'title': '不知道'}]
         nextScene = "SQuAD_chatbot_Reply"
     elif gameMode == "競技場":
         # 競技場不會徵求答案
         ask_for_Ans = False
-        # 更新已測驗題數
-        connectDB.update_ChatbotTestRecord(myUserSQuADList, Challenge_id, bookName, now_user['User_id'])
         if Exist_Ans == True:
             response += choice(find_common_result_answerT['content']).replace('XXX', Ans)
             button_item = [ {'title': '正確'},
                             {'title': '錯誤'}]
             nextScene = "SQuAD_chatbot_Reply"
         else:
-            if now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] < testTotalCount:
+            # 更新測驗紀錄
+            connectDB.update_ChatbotTestRecord_content(myUserSQuADList, Challenge_id, bookName, now_user['User_id'], UserQuestion, None, False)
+            # SQuADList, Challenge_id, bookName, chatbot_id, question, answer, result
+            test_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']
+            correct_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count']
+            print("test_count:", test_count, " correct_count:", correct_count)
+            if test_count < testTotalCount-1:
                 response += choice(find_common_result_answerF['content']) + "，真可惜。<br>你可以繼續問我問題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
-                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>好的，你已經問" + str(now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續就回到「主選單」吧。"
+                response += choice(find_common_result_answerF['content']) + "，真可惜。<br>好的，你已經問" + str(test_count+1) + "題了喔，"
+                response += "本次挑戰" + chatbotName +"答對了" + str(correct_count) + "題，總共" + str(correct_count/test_count * 100) +"分。"
+                response += "<br>回主選單繼續玩吧~"
                 button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"
 
@@ -1524,9 +1564,10 @@ def SQuAD_get_Ans(req):
         "session": {
             "params": {
                 "User_id": user_id,
-                "User_question4F": User_question4F,
+                "User_questionType": User_questionType,
                 "User_book": bookName,
                 "ask_for_Ans": ask_for_Ans,
+                "system_Ans": Ans,
                 "User_question": UserQuestion,
                 "thinking_word": thinking_word,
                 "NextScene": nextScene
@@ -1544,14 +1585,16 @@ def SQuAD_chatbot_Reply(req):
     user_id = req['session']['params']['User_id']
     userSay = req['intent']['query']
     UserQuestion = req['session']['params']['User_question']
+    system_Ans = req['session']['params']['system_Ans']
     chatbotName = req['session']['params']['chatbotName']
     gameMode = req['session']['params']['game_mode']
-    User_question4F = req['session']['params']['User_question4F']
+    User_questionType = req['session']['params']['User_questionType']
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     response = ""
     nextScene = ""
+    answer_result = False
     updateChatbotFile = False
     ask_for_Ans = False
     thinking_word = get_thinkingWord()
@@ -1561,35 +1604,34 @@ def SQuAD_chatbot_Reply(req):
     if req['session']['params']['ask_for_Ans'] == True:
         if userSay == "不知道":
             response = "好吧，那你就繼續問我其他問題吧！"
-            nextScene = "SQuAD_get_Ans"
+            nextScene = "SQuAD_get_Type"
         else:
-            if User_question4F == "Finding":
-                # 不問原因只問頁數
-                button_item = [{'title': '沒有'}]
-                find_common = {'type': 'common_elaboration'}
-                find_common_result = myCommonList.find_one(find_common)
-                response = choice(find_common_result['content']) + "這部分在故事的哪幾頁呢？在右邊點選頁數按鈕後，按下傳送就好了喔！"
-                nextScene = "SQuAD_get_Page"
-            else:
-                button_item = [{'title': '不知道'}]
-                response = "那你可以告訴我為什麼嗎？告訴我原因吧，如果不知道就按下「不知道」。"
-                nextScene = "SQuAD_get_Reason"
+            button_item = [{'title': '不知道'}]
+            response = "那你可以告訴我為什麼嗎？告訴我原因吧，如果不知道就按下「不知道」。"
+            nextScene = "SQuAD_get_Reason"
         
         ask_for_Ans = False
         print("學生問題:", UserQuestion, "學生建議答案:", userSay)
         
     # 機器人回答學生的問句，然後學生按下正確/錯誤鍵後
     else:
+        # 若SQuAD機器人不知道答案的通用句
+        find_common = {'type': 'common_answer_F'}
+        find_common_result_answerF = myCommonList.find_one(find_common)
         if gameMode == "訓練場":
             if userSay == "正確":
+                answer_result = True
                 response = "太好了，你可以繼續問我問題囉！"
                 updateChatbotFile = True
                 ask_for_Ans = False
+                # 將DB中該本書的訓練次數加一
+                connectDB.update_ChatbotTrainRecord(myUserSQuADList, bookName, user_id)
+                # 將問句、建議答案、頁數及原因存入ElasticSearch
+                connectDB.update_ES_doc(es, dbBookName, user_id, chatbotName, UserQuestion, system_Ans, None, None, None, time)
                 nextScene = "SQuAD_get_Type"
             elif userSay == "錯誤":
-                if User_question4F == "Feeling":
-                    response = "那你的感受是什麼，可以告訴我嗎？"
-                response = "我的答案竟然是錯的，那你可以教教我正確答案是什麼嗎？"
+                answer_result = False
+                response = choice(find_common_result_answerF['content']) + "，那你可以教教我正確答案是什麼嗎？"
                 ask_for_Ans = True
                 button_item = [{'title': '不知道'}]
                 nextScene = "SQuAD_chatbot_Reply"
@@ -1597,21 +1639,32 @@ def SQuAD_chatbot_Reply(req):
             Challenge_id = req['session']['params']['Challenge_id']
             find_user = {'chatbotName': chatbotName}
             now_user = myUserSQuADList.find_one(find_user)
+            test_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']
+            correct_count = now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count']
+            print("test_count:", test_count, " correct_count:", correct_count)
             if userSay == "正確":
+                answer_result = True
                 response += "太好了。"
+                correct_count += 1
                 # 更新已答對題數
                 connectDB.update_ChatbotCorrectRecord(myUserSQuADList, Challenge_id, bookName, now_user['User_id'])
             elif userSay == "錯誤":
-                response += "我的答案竟然是錯的，真可惜。"
+                answer_result = False
+                response += choice(find_common_result_answerF['content']) + "，真可惜。"
 
-            if now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] < testTotalCount:
+            if test_count < testTotalCount-1:
                 response += "<br>你可以繼續問我問題囉！"
                 nextScene = "SQuAD_get_Ans"
             else:
-                response += "<br>好的，你已經問" + str(now_user["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count']) + "題了喔，我們這次就聊到這裡吧，如果你還想繼續，就按下「主選單」。"
+                response += "<br>好的，你已經問" + str(test_count+1) + "題了喔，"
+                response += "本次挑戰" + chatbotName +"答對了" + str(correct_count) + "題，總共" + str(correct_count/(test_count+1) * 100) +"分。"
+                response += "<br>回主選單繼續玩吧~"
                 button_item = [{'title': '主選單'}]
                 nextScene = "SQuAD_gameMode"
             ask_for_Ans = False
+
+            # 更新測驗紀錄
+            connectDB.update_ChatbotTestRecord_content(myUserSQuADList, Challenge_id, bookName, now_user['User_id'], UserQuestion, system_Ans, answer_result)
     
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
@@ -1648,8 +1701,6 @@ def SQuAD_chatbot_Reply(req):
             }
         },
     }
-    # if User_question4F == "Finding":
-    #     response_dict['prompt']['suggestions'] = button_item
     if updateChatbotFile == True:
         response_dict['session']['params']['AllTrainContent'] = connectDB.search_ES_TrainContent(es, user_id)
     if gameMode == "競技場":
@@ -1728,24 +1779,21 @@ def SQuAD_get_Page(req):
     chatbotName = req['session']['params']['chatbotName']
     UserQuestion = req['session']['params']['User_question']
     UserAns = req['session']['params']['User_ans']
-    UserQuestion4F = req['session']['params']['User_question4F']
+    UserQuestionType = req['session']['params']['User_questionType']
     bookName = req['session']['params']['User_book']
     dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
     nowBook = myClient[dbBookName]
     pages = None
-    if UserQuestion4F == "Finding":
-        UserReason = -1
-    else:
-        UserReason = req['session']['params']['User_reason']
+    UserReason = req['session']['params']['User_reason']
     if "沒有" in userSay or len(userSay) == 0:
         response = "原來不在故事裡，謝謝你告訴我，你可以繼續問我問題囉！"
     else:
         pages = list(map(int, userSay.split(",")))
         response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，你可以繼續問我問題囉！"
     
-    connectDB.update_ChatbotTrainRecord(myUserSQuADList, bookName, user_id)
     # 將DB中該本書的訓練次數加一，並將問句、建議答案、頁數及原因存入ElasticSearch
-    connectDB.update_ES_doc(es, dbBookName, user_id, chatbotName, UserQuestion, UserAns, UserReason, pages, UserQuestion4F, time)
+    connectDB.update_ChatbotTrainRecord(myUserSQuADList, bookName, user_id)
+    connectDB.update_ES_doc(es, dbBookName, user_id, chatbotName, UserQuestion, UserAns, UserReason, pages, UserQuestionType, time)
     
     thinking_word = get_thinkingWord()
     

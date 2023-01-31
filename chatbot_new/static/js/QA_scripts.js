@@ -37,7 +37,7 @@ var suggest_exist = 0;
 var CE_P=0;
 var CE_A=0;
 var selected_page = []
-var toHiddenID = "Fact"
+var toHiddenID = "Character"
 var AllTrainContent;
 var leaderboardContent;
 var rankingIndex;
@@ -87,7 +87,7 @@ function user_sendMsg(Object) {
 	send_userJson();
 
 	if(sync_waitInput_flag == 1){
-	
+		console.log("sync_waitInput_flag == 1")
 		//show_chatbotTyping()
 		//同步等待
 		setTimeout(function(){
@@ -725,9 +725,13 @@ function analyze_responseData(){
 	
 	// 加上頁數的多選按鈕
 	if(session['params']['NextScene'] == "SQuAD_get_Page"){
+		allPageImg = '';
 		for(let i = 2; i <= 23; i++){
-			document.getElementById("bookPage" + i).innerHTML = '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>'
+			allPageImg += '<div class="page" id="bookPage' + i + '">';
+			allPageImg += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>';
+			allPageImg += '</div>';
 		}
+		document.getElementById("bookPage_id").innerHTML = allPageImg;
 		// document.getElementById("talkwords").style.visibility = "hidden";
 		// document.getElementById("talksend").style.visibility = "visible";
 		document.getElementById("talkwords").disabled = "disabled"
@@ -737,7 +741,7 @@ function analyze_responseData(){
 	//進到下一輪問答時先把頁數的按鈕移除 
 	if(session['params']['NowScene'] == "SQuAD_get_Page" && session['params']['NextScene'] == "SQuAD_get_Type"){
 		for(let i = 2; i <= 23; i++){
-			document.getElementById("bookPage" + i).innerHTML = "";
+			document.getElementById("bookPage_id").innerHTML = "";
 		}
 	}
 	// 競技場選機器人時，book區顯示所有機器人資訊
@@ -746,11 +750,12 @@ function analyze_responseData(){
 		allUserData = session["params"]['allUserData']
 		allUserData_display = '<table>';
 		for(var i = 0; i < allUserData.length; i++){
-			allUserData_display += '<tr><td style="text-align: center; width: 30%;"><img src="/static/image/chatbot/' + allUserData[i][2] + '.png"></td>';
-			allUserData_display += '<td class="botDataInfo"><p class="highlightText">' + allUserData[i][1] + '</p><br>主人：' + allUserData[i][0][0] + "班 " + allUserData[i][0][1] + "號" + '</td></tr>';
+			allUserData_display += '<tr><td style="text-align: center; width: 30%;"><img src="/static/image/chatbot/' + allUserData[i]['chatbotStyle'] + '.png"></td>';
+			allUserData_display += '<td class="botDataInfo"><p class="highlightText">' + allUserData[i]['chatbotName'] + '</p>主人：' + allUserData[i]['User_id'][0] + "班 " + allUserData[i]['User_id'][1] + "號" + '<br>答對比例：' + allUserData[i]['score'] + '%</td></tr>';
 		}
 		allUserData_display += "</table>";
 		book.innerHTML = allUserData_display;
+		document.getElementById("menu_id").style.visibility = "hidden";
 	}
 
 	/* 機器人檔案內容 */
@@ -791,24 +796,17 @@ function analyze_responseData(){
 // book頁面顯示
 function book_showPages(show_button){
 	bookName = session["params"]["User_book"];
-	book.innerHTML = "";
 	OnePageImgUrl = '';
 	allPageImg = ''
-	for(let i = 2; i <= 23; i++){
-		// allPageImg += '<div class="page"><img id="page'+ i +'" src="' + OnePageImgUrl + '"></img>';
-		allPageImg += '<div class="page" id="bookPage' + i + '">';
-		
-		if (show_button == true){
-			allPageImg += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>';
-		}
-		allPageImg += '</div>';
-	}
-	book.innerHTML = allPageImg;
-	for(let i = 2; i <= 23; i++){
-		OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
-		document.getElementById("bookPage" + i).style.backgroundImage = "url('" + OnePageImgUrl + "')";
-		document.getElementById("bookPage" + i).style.backgroundSize = "cover";
-	}
+	document.getElementById("book_id").innerHTML = '<div id="bookPage_id" style="width: 300px; height: 1650px; background-size: cover;"></div>';
+	OnePageImgUrl = Book_ImageFileUrl + bookName + '/Merge.jpg';
+	document.getElementById("bookPage_id").style.backgroundImage = "url('" + OnePageImgUrl + "')";
+	
+	// for(let i = 2; i <= 23; i++){
+	// 	OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
+	// 	document.getElementById("bookPage" + i).style.backgroundImage = "url('" + OnePageImgUrl + "')";
+	// 	document.getElementById("bookPage" + i).style.backgroundSize = "cover";
+	// }
 }
 
 
@@ -853,7 +851,7 @@ function show_score(){
 	
 }
 
-// 控制導覽區4F範例框的顯示
+// 控制導覽區 7 type範例框的顯示
 function display_guide(object){
 	var example_content = document.getElementById(object.value)
 
@@ -888,31 +886,24 @@ function load_trainRecord_chatbotFile(AllTrainContent){
 
 function load_leaderboard_chatbotFile(leaderboardContent, rankingIndex, user_id){
 	var leaderboardContent_display = '';
-	document.getElementById("leaderboard_content_id").innerHTML = '';
-	leaderboardContent_display = '<table><tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
+	document.getElementById("testLeaderboard_content_id").innerHTML = '';
+	leaderboardContent_display = '<table><tr><th>你的機器人</th><th>你的資訊</th><th>你的名次</th></tr>'
 	for(var i = 0; i < rankingIndex.length; i ++){
 		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
-			leaderboardContent_display += '<tr><td class="table-center highlightBG"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
-			leaderboardContent_display += '<td class="highlightBG">名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
-			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['test_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['corect_count_sum'];
-			leaderboardContent_display += '<br>總分：' + leaderboardContent[rankingIndex[i]]['score'] + "</td>";
-			if(leaderboardContent[rankingIndex[i]]['score'] == 0){
-				leaderboardContent_display += '<td class="Num table-center highlightBG"> </td>';
-			}
-			else{
-				if(i < 3){
-					leaderboardContent_display += '<td class="Num table-center highlightBG" style="color:yellow;">' + (i+1) + '</td>';
-				}
-				else{
-					leaderboardContent_display += '<td class="Num table-center highlightBG">' + (i+1) + '</td>';
-				}
-			}
+			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, false);
+		}
+	}
+	leaderboardContent_display += '<tr><td></td><td></td><td></td></tr>'
+	leaderboardContent_display += '<tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
+	for(var i = 0; i < rankingIndex.length; i ++){
+		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
+			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, true);
 		}
 		else{
 			leaderboardContent_display += '<tr><td class="table-center"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
 			leaderboardContent_display += '<td>名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
-			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['test_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['corect_count_sum'];
-			leaderboardContent_display += '<br>總分：' + leaderboardContent[rankingIndex[i]]['score'] + "</td>";
+			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['test_count_sum'];
+			leaderboardContent_display += '<br>答對比例：' + leaderboardContent[rankingIndex[i]]['score'] + "%</td>";
 			if(leaderboardContent[rankingIndex[i]]['score'] == 0){
 				leaderboardContent_display += '<td class="Num table-center"> </td>';
 			}
@@ -923,12 +914,34 @@ function load_leaderboard_chatbotFile(leaderboardContent, rankingIndex, user_id)
 				else{
 					leaderboardContent_display += '<td class="Num table-center">' + (i+1) + '</td>';
 				}
-
 			}
 		}
 	}
 	leaderboardContent_display += '</table>'
-	document.getElementById("leaderboard_content_id").innerHTML += leaderboardContent_display;
+	document.getElementById("testLeaderboard_content_id").innerHTML += leaderboardContent_display;
+}
+function leaderboardContent_display_User(leaderboardContent, rankingIndex, index, detail_info){
+	display_str = '';
+	display_str += '<tr><td class="table-center highlightBG"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[index]]['chatbotStyle'] + '.png"></td>';
+	display_str += '<td class="highlightBG">'
+	if(detail_info == true){
+		display_str += '名稱：' + leaderboardContent[rankingIndex[index]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[index]]['User_id'].replace("_", "班 ") + "號<br>";
+	}
+	display_str += '答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[index]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[index]]['test_count_sum'] + '<br>';
+	display_str += '答對比例：' + leaderboardContent[rankingIndex[index]]['score'] + '%';
+	display_str += '</td>';
+	if(leaderboardContent[rankingIndex[index]]['score'] == 0){
+		display_str += '<td class="Num table-center highlightBG"> </td>';
+	}
+	else{
+		if(index < 3){
+			display_str += '<td class="Num table-center highlightBG" style="color:yellow;">' + (index+1) + '</td>';
+		}
+		else{
+			display_str += '<td class="Num table-center highlightBG">' + (index+1) + '</td>';
+		}
+	}
+	return display_str;
 }
 function openChatbotFile(){
 	document.getElementById("chatbotFile_id").style.display = "block";
@@ -939,8 +952,9 @@ function cloceChatbotFile(){
 
 function backToMainMenu(){
 	handler['name'] = "SQuAD_gameMode";
-	document.getElementById("book_id").innerHTML = ""
-	document.getElementById("book-cover_id").innerHTML = ""
+	delete session['params']['game_mode'];
+	document.getElementById("book_id").innerHTML = "";
+	document.getElementById("book-cover_id").innerHTML = "";
 	document.getElementById("book_id").style.display = "none";
 	document.getElementById("guide_id").style.display = "none";
 	window.speechSynthesis.cancel();
@@ -954,21 +968,21 @@ function openChatbotRecord(){
 	// 按鈕變化
 	document.getElementById("chatbotRecordBtn_id").style.background = "#523b6e";
 	document.getElementById("chatbotRecordBtn_id").style.color = "white";
-	document.getElementById("leaderboardBtn_id").style.background = "#d7dee0";
-	document.getElementById("leaderboardBtn_id").style.color = "black";	
+	document.getElementById("testLeaderboardBtn_id").style.background = "#d7dee0";
+	document.getElementById("testLeaderboardBtn_id").style.color = "black";
 	// 下方資訊內容變化
 	document.getElementById("chatbotRecord_content_id").style.visibility = "visible";	
-	document.getElementById("leaderboard_content_id").style.visibility = "hidden";	
+	document.getElementById("testLeaderboard_content_id").style.visibility = "hidden";	
 }
-function openLeaderboard(){
-	// 分頁：排行榜
+function openTestLeaderboard(){
+	// 分頁：競技場排行榜
 	// 按鈕變化
-	document.getElementById("leaderboardBtn_id").style.background = "#523b6e";
-	document.getElementById("leaderboardBtn_id").style.color = "white";
+	document.getElementById("testLeaderboardBtn_id").style.background = "#523b6e";
+	document.getElementById("testLeaderboardBtn_id").style.color = "white";
 	document.getElementById("chatbotRecordBtn_id").style.background = "#d7dee0";
 	document.getElementById("chatbotRecordBtn_id").style.color = "black";
 	// 下方資訊內容變化
-	document.getElementById("leaderboard_content_id").style.visibility = "visible";
+	document.getElementById("testLeaderboard_content_id").style.visibility = "visible";
 	document.getElementById("chatbotRecord_content_id").style.visibility = "hidden";	
 }
 

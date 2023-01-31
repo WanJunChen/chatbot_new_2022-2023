@@ -74,9 +74,10 @@ def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot,
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)] = {
                                                                         'challenger_id': user_id_challenger,
                                                                         'test_count': 0,
-                                                                        'corect_count': 0}
+                                                                        'correct_count': 0,
+                                                                        'content': []}
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
-
+# 20230128待修改:
 
 def update_ChatbotTestRecord(SQuADList, Challenge_id, bookName, chatbot_id):
     find_user = {'User_id': chatbot_id}
@@ -84,13 +85,21 @@ def update_ChatbotTestRecord(SQuADList, Challenge_id, bookName, chatbot_id):
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['test_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
-def update_ChatbotCorrectRecord(SQuADList, Challenge_id, BookName, chatbot_id):
+def update_ChatbotCorrectRecord(SQuADList, Challenge_id, bookName, chatbot_id):
     find_user = {'User_id': chatbot_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    userSQuAD_result["QA_record"][BookName]['test_record'][str(Challenge_id)]['corect_count'] += 1
+    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
-def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans, reason, page_list, question4F, time):
+def update_ChatbotTestRecord_content(SQuADList, Challenge_id, bookName, chatbot_id, question, answer, result):
+    challengeQA = [question, answer, result]
+    find_user = {'User_id': chatbot_id}
+    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
+    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['content'].append(challengeQA)
+    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
+    # 在test_record裡多加一個content，裡面放多個「"問題"、"機器人答案"、"正確與否"」
+
+def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans, reason, page_list, questionType, time):
     question = question.replace("?", "").replace("？", "")
     mydict = {  'User_id': user_id,
                 'chatbotName': chatbotName,
@@ -98,7 +107,7 @@ def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans
                 'Answer': suggestion_Ans,
                 'reason': reason,
                 'pages': page_list,
-                '4F_type': question4F,
+                'type': questionType,
                 'time': time}
     if reason == -1:
         del mydict['reason']
@@ -137,21 +146,21 @@ def find_DB_AllChatbotScore(SQuADList):
     scoreList = []
     for user in userSQuAD_result:
         test_count_sum = 0
-        corect_count_sum = 0
+        correct_count_sum = 0
         user_score = {}
         for book in user['QA_record']:
             for index in user['QA_record'][book]['test_record']:
                 test_count_sum += user['QA_record'][book]['test_record'][index]['test_count']
-                corect_count_sum += user['QA_record'][book]['test_record'][index]['corect_count']
+                correct_count_sum += user['QA_record'][book]['test_record'][index]['correct_count']
         user_score['User_id'] = user['User_id']
         user_score['chatbotName'] = user['chatbotName']
         user_score['chatbotStyle'] = user['chatbotStyle']
         user_score['test_count_sum'] = test_count_sum
-        user_score['corect_count_sum'] = corect_count_sum
+        user_score['correct_count_sum'] = correct_count_sum
         if test_count_sum == 0:
             score = 0
         else:
-            score = int((corect_count_sum/test_count_sum) * 100)
+            score = int((correct_count_sum/test_count_sum) * 100)
         scoreList.append(score)
         user_score['score'] = score
         result.append(user_score)

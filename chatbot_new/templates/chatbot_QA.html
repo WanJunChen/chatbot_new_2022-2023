@@ -33,12 +33,16 @@
             <input type="image" class="homeBtn" id="homeBtn_id" src="{{url_for('static', filename='image/home.png')}}" onclick="backToMainMenu()">
             <div class="chatbotFile_head">
               <input type="button" class="chatbotRecordBtn" id="chatbotRecordBtn_id" value="訓練日誌" onclick="openChatbotRecord()" style="background: #523b6e; color:white;">
-              <input type="button" class="leaderboardBtn" id="leaderboardBtn_id" value="競技場排行榜" onclick="openLeaderboard()">
+              <input type="button" class="leaderboardBtn" id="trainLeaderboardBtn_id" value="訓練題數排行榜" onclick="openTrainLeaderboard()">
+              <br>
+              <input type="button" class="leaderboardBtn" id="testRecordBtn_id" value="挑戰日誌" onclick="openTestRecord()">
+              <input type="button" class="leaderboardBtn" id="testLeaderboardBtn_id" value="競技場排行榜" onclick="openTestLeaderboard()">
             </div>
             <div class="chatbotFile_botInfo" id="chatbotFile_botInfo_id"></div>
+            <!-- 以下可以切換不同頁面 -->
             <div class="chatbotFile_content" id="chatbotFile_content_id">
               <div class="chatbotRecord_content" id="chatbotRecord_content_id"></div>
-              <div class="leaderboard_content" id="leaderboard_content_id"></div>
+              <div class="testLeaderboard_content" id="testLeaderboard_content_id"></div>
             </div>
           </div>
           <!--  -->
@@ -99,45 +103,57 @@
       <div class="mode_background" id="mode_background"></div>
       <div class="book-cover" id="book-cover_id"></div>
       <div class="guide-context">
-        不知道要問什麼嗎？來找魚姊姊吧！<br><br>點擊下面這四種類型的按鈕，看看可以怎麼問喔。<br><br>
-
-        <button class="Fact_btn" onclick="display_guide(this)" value='Fact'>故事內容</button><br>
-        <div class="Example_4F Fact" id="Fact">
+        不知道要問什麼嗎？來找魚姊姊吧！<br><br>點擊下面這七種類型的按鈕，看看可以怎麼問喔。<br><br>
+        <!-- FairyTaleQA 七個類型：人物(Character) 時間地點(Setting) 行為(Action) 人物感受(Feeling)
+        事情原因 (Causal relations) 事情結果(Outcome resolution) 故事延伸(Prediction) -->
+        <button class="Character_btn" onclick="display_guide(this)" value='Character'>人物</button><br>
+        <div class="Example_7type Character" id="Character">
           <ul>
-            <li>Salt最後負責做什麼工作？</li>
-            <li>Adam開了什麼店？</li>
-            <li>Mandy和Sophie在哪裡玩？</li>
-            <li>Ralph向Hoot借了什麼？</li>
+            <li>人物範例句</li>
           </ul>
         </div>
 
-        <button class="Feeling_btn" onclick="display_guide(this)" value='Feeling'>我的感受</button><br>
-        <div class="Example_4F Feeling" id="Feeling">
+        <button class="Setting_btn" onclick="display_guide(this)" value='Setting'>時間地點</button><br>
+        <div class="Example_7type Setting" id="Setting">
           <ul>
-            <li>你覺得Salt會很壞嗎？</li>
-            <li>你認為Sophie是一個什麼樣的人？</li>
-            <li>你覺得Nick是一個好哥哥嗎？</li>
+            <li>時間地點範例句</li>
           </ul>
         </div>
 
-        <button class="Finding_btn" onclick="display_guide(this)" value='Finding'>為什麼</button><br>
-        <div class="Example_4F Finding" id="Finding">
+        <button class="Action_btn" onclick="display_guide(this)" value='Action'>行為</button><br>
+        <div class="Example_7type Action" id="Action">
           <ul>
-            <li>為什麼Sophie是特別的女孩？</li>
-            <li>為什麼大家把Ralph留在小鎮裡？</li>
-            <li>Little Donkey為什麼會被國王選中？</li>
+            <li>行為範例句</li>
           </ul>
         </div>
 
-        <button class="Future_btn" onclick="display_guide(this)" value='Future'>如果...</button>
-        <div class="Example_4F Future" id="Future">
+        <button class="Feeling_btn" onclick="display_guide(this)" value='Feeling'>人物感受</button>
+        <div class="Example_7type Feeling" id="Feeling">
           <ul>
-            <li>如果你是Little Donkey，會跟國王走嗎？</li>
-            <li>要怎麼對待患有唐氏症的人呢？</li>
-            <li>如果你跟別人借東西，你會還嗎？</li>
+            <li>人物感受範例句</li>
           </ul>
         </div>
 
+        <button class="Causal_relations_btn" onclick="display_guide(this)" value='Causal_relations'>事情原因</button>
+        <div class="Example_7type Causal_relations" id="Causal_relations">
+          <ul>
+            <li>事情原因範例句</li>
+          </ul>
+        </div>
+
+        <button class="Outcome_resolution_btn" onclick="display_guide(this)" value='Outcome_resolution'>事情結果</button>
+        <div class="Example_7type Outcome_resolution" id="Outcome_resolution">
+          <ul>
+            <li>事情結果範例句</li>
+          </ul>
+        </div>
+        
+        <button class="Prediction_btn" onclick="display_guide(this)" value='Prediction'>故事延伸</button>
+        <div class="Example_7type Prediction" id="Prediction">
+          <ul>
+            <li>故事延伸範例句</li>
+          </ul>
+        </div>
         <div class="guide_robot" id="guide_robot_id"><img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}" ></img>魚姊姊</div>
       </div>
     </div>
