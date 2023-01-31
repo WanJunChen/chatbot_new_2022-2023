@@ -633,9 +633,7 @@ def SQuAD_Get_ChatbotStyle(req):
         print("scene: 跳轉到Get_bookName")
         response = "歡迎來到競技場！你可以挑戰一位機器人，問他" + str(testTotalCount) + "個問題，看看他能不能答出來喔！你今天想挑戰哪個機器人呢？"
         button_item = []
-        AllUserData, rankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
-        # 移除AllUserData中User_id本人的資料
-        print(AllUserData)
+        AllUserData, testRankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
         for i in range(len(AllUserData)):
             if AllUserData[i]['User_id'] == user_id:
                 del AllUserData[i]
@@ -931,7 +929,8 @@ def Get_bookName(req):
                 
                 return response_dict
         
-        leaderboardContent, rankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
+        leaderboardContent, testRankingIndex = connectDB.find_DB_AllChatbotScore(myUserSQuADList)
+        AllTrainCount, trainRankingIndex = connectDB.find_DB_AllUser_trainCount(myUserSQuADList)
         response_dict = {
             "prompt": {
                 "firstSimple": {
@@ -953,8 +952,10 @@ def Get_bookName(req):
                     "chatbotName": chatbotName,
                     "NextScene": "Prompt_SQuAD",
                     "AllTrainContent": connectDB.search_ES_TrainContent(es, user_id),
+                    "AllTrainCount": AllTrainCount,
+                    "trainRankingIndex": trainRankingIndex,
                     "leaderboardContent": leaderboardContent,
-                    "rankingIndex": rankingIndex,
+                    "testRankingIndex": testRankingIndex,
                     "chatbotStyle": chatbotStyle
                 }
             }
@@ -1398,7 +1399,7 @@ def SQuAD_get_Type(req):
         connectDB.addQADialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, response, time, session_id, gameMode, req['scene']['name'])
     
     thinking_word = get_thinkingWord()
-
+    AllTrainCount, trainRankingIndex = connectDB.find_DB_AllUser_trainCount(myUserSQuADList)
     response_dict = {
             "prompt": {
                 "firstSimple": {
@@ -1421,7 +1422,9 @@ def SQuAD_get_Type(req):
                     "NextScene": "SQuAD_get_Ans",
                     "User_question": userSay,
                     "thinking_word": thinking_word,
-                    "AllTrainContent": connectDB.search_ES_TrainContent(es, user_id)
+                    "AllTrainContent": connectDB.search_ES_TrainContent(es, user_id),
+                    "AllTrainCount": AllTrainCount,
+                    "trainRankingIndex": trainRankingIndex
                 }
             }
         }
@@ -1704,7 +1707,10 @@ def SQuAD_chatbot_Reply(req):
         },
     }
     if updateChatbotFile == True:
+        AllTrainCount, trainRankingIndex = connectDB.find_DB_AllUser_trainCount(myUserSQuADList)
         response_dict['session']['params']['AllTrainContent'] = connectDB.search_ES_TrainContent(es, user_id)
+        response_dict['session']['params']['AllTrainCount'] = AllTrainCount
+        response_dict['session']['params']['rankingIndex'] = trainRankingIndex
     if gameMode == "競技場":
         response_dict['session']['params']['Challenge_id'] = Challenge_id
     print(response)

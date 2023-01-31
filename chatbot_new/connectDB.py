@@ -160,6 +160,24 @@ def find_DB_AllChatbotScore(SQuADList):
 
     return result, rankingIndex
 
+def find_DB_AllUser_trainCount(SQuADList):
+    userSQuAD_result = SQuADList.find()
+    result = []
+    trainCountList = []
+    for user in userSQuAD_result:
+        train_count_sum = 0
+        user_score = {}
+        for book in user['QA_record']:
+            train_count_sum += user['QA_record'][book]['train_count']
+        user_score['User_id'] = user['User_id']
+        user_score['chatbotName'] = user['chatbotName']
+        user_score['chatbotStyle'] = user['chatbotStyle']
+        user_score['train_count_sum'] = train_count_sum
+        trainCountList.append(train_count_sum)
+        result.append(user_score)
+    rankingIndex = list(map(int, np.argsort(trainCountList)[::-1]))
+    return result, rankingIndex
+
 def search_ES_TrainContent(es, user_id):
     search_ES_data = {
         "query": {

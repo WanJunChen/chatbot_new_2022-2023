@@ -775,24 +775,31 @@ function analyze_responseData(){
 		document.getElementById("chatbotFile_botInfo_id").innerHTML = chatbot_info_display;
 		document.getElementById("bot_style").src = "/static/image/chatbot/"+robotID+".png";
 		AllTrainContent = session["params"]['AllTrainContent'];
+		AllTrainCount = session["params"]['AllTrainCount'];
+		rankingIndex = session["params"]['trainRankingIndex'];
 		load_trainRecord_content(AllTrainContent);
-		load_trainLeaderboard_content();
+		load_leaderboard_content(AllTrainCount, rankingIndex, session['params']['User_id'], 'train');
 		load_testRecord_content();
 	}
 	if(session["params"].hasOwnProperty('AllTrainContent')){
-		console.log("更新訓練日誌");
+		console.log("更新訓練日誌、訓練題數排行榜");
 		AllTrainContent = session["params"]['AllTrainContent'];
+		AllTrainCount = session["params"]['AllTrainCount'];
+		rankingIndex = session["params"]['trainRankingIndex'];
 		load_trainRecord_content(AllTrainContent);
+		load_leaderboard_content(AllTrainCount, rankingIndex, session['params']['User_id'], 'train');
 		delete session["params"]['AllTrainContent'];
+		delete session["params"]['AllTrainCount'];
+		delete session["params"]['trainRankingIndex'];
 	}
-	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('rankingIndex')){
+	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('testRankingIndex')){
 		console.log("更新競技場排行榜");
 		leaderboardContent = session["params"]['leaderboardContent'];
-		rankingIndex = session["params"]['rankingIndex'];
+		rankingIndex = session["params"]['testRankingIndex'];
 		console.log(leaderboardContent)
-		load_testLeaderboard_content(leaderboardContent, rankingIndex, session['params']['User_id'])
+		load_leaderboard_content(leaderboardContent, rankingIndex, session['params']['User_id'], "test")
 		delete session["params"]['leaderboardContent'];
-		delete session["params"]['rankingIndex'];
+		delete session["params"]['testRankingIndex'];
 	}
 
 }
@@ -959,7 +966,7 @@ function openTestLeaderboard(){
 	document.getElementById("testRecord_content_id").style.visibility = "hidden";	
 	document.getElementById("testLeaderboard_content_id").style.visibility = "visible";	
 }
-
+// 載入訓練日誌
 function load_trainRecord_content(AllTrainContent){
 	var AllTrainContent_display = '';
 	var index = 0;
@@ -979,34 +986,41 @@ function load_trainRecord_content(AllTrainContent){
 		document.getElementById("trainRecord_content_id").innerHTML += AllTrainContent_display + "<hr>";
 	}
 }
-function load_trainLeaderboard_content(){
-	document.getElementById("trainLeaderboard_content_id").innerHTML = "訓練題數排行榜-內文";
-}
+// 載入挑戰日誌
 function load_testRecord_content(){
 	document.getElementById("testRecord_content_id").innerHTML = "挑戰日誌-內文";
 }
-
-function load_testLeaderboard_content(leaderboardContent, rankingIndex, user_id){
+// 載入訓練題數排行榜or競技場排行榜
+function load_leaderboard_content(leaderboardContent, rankingIndex, user_id, type){
 	var leaderboardContent_display = '';
-	document.getElementById("testLeaderboard_content_id").innerHTML = '';
+	score = 0
 	leaderboardContent_display = '<table><tr><th>你的機器人</th><th>你的資訊</th><th>你的名次</th></tr>'
 	for(var i = 0; i < rankingIndex.length; i ++){
 		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
-			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, false);
+			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, false, type);
 		}
 	}
 	leaderboardContent_display += '<tr><td></td><td></td><td></td></tr>'
 	leaderboardContent_display += '<tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
 	for(var i = 0; i < rankingIndex.length; i ++){
 		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
-			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, true);
+			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, true, type);
 		}
 		else{
 			leaderboardContent_display += '<tr><td class="table-center"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
 			leaderboardContent_display += '<td>名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
-			leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['test_count_sum'];
-			leaderboardContent_display += '<br>答對率：' + leaderboardContent[rankingIndex[i]]['score'] + "%</td>";
-			if(leaderboardContent[rankingIndex[i]]['score'] == 0){
+
+			if(type == "test"){
+				leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['test_count_sum'];
+				leaderboardContent_display += '<br>答對率：' + leaderboardContent[rankingIndex[i]]['score'] + "%</td>";
+				score = leaderboardContent[rankingIndex[i]]['score']
+			}
+			else if(type == "train"){
+				leaderboardContent_display += '<br>訓練題數：' + leaderboardContent[rankingIndex[i]]['train_count_sum'] + '</td>';
+				score = leaderboardContent[rankingIndex[i]]['train_count_sum']
+			}
+
+			if(score == 0){
 				leaderboardContent_display += '<td class="Num table-center"> </td>';
 			}
 			else{
@@ -1020,19 +1034,35 @@ function load_testLeaderboard_content(leaderboardContent, rankingIndex, user_id)
 		}
 	}
 	leaderboardContent_display += '</table>'
-	document.getElementById("testLeaderboard_content_id").innerHTML += leaderboardContent_display;
+	if(type == "test"){
+		document.getElementById("testLeaderboard_content_id").innerHTML = '';
+		document.getElementById("testLeaderboard_content_id").innerHTML = leaderboardContent_display;
+	}
+	else if(type == "train"){
+		document.getElementById("trainLeaderboard_content_id").innerHTML = '';
+		document.getElementById("trainLeaderboard_content_id").innerHTML = leaderboardContent_display;
+	}
 }
-function leaderboardContent_display_User(leaderboardContent, rankingIndex, index, detail_info){
+function leaderboardContent_display_User(leaderboardContent, rankingIndex, index, detail_info, type){
 	display_str = '';
+	score = 0
 	display_str += '<tr><td class="table-center highlightBG"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[index]]['chatbotStyle'] + '.png"></td>';
 	display_str += '<td class="highlightBG">'
 	if(detail_info == true){
 		display_str += '名稱：' + leaderboardContent[rankingIndex[index]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[index]]['User_id'].replace("_", "班 ") + "號<br>";
 	}
-	display_str += '答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[index]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[index]]['test_count_sum'] + '<br>';
-	display_str += '答對率：' + leaderboardContent[rankingIndex[index]]['score'] + '%';
-	display_str += '</td>';
-	if(leaderboardContent[rankingIndex[index]]['score'] == 0){
+
+	if(type == "test"){
+		display_str += '答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[index]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[index]]['test_count_sum'] + '<br>';
+		display_str += '答對率：' + leaderboardContent[rankingIndex[index]]['score'] + '%</td>';
+		score = leaderboardContent[rankingIndex[index]]['score']
+	}
+	else if(type == "train"){
+		display_str += '訓練題數：' + leaderboardContent[rankingIndex[index]]['train_count_sum'] + '</td>';
+		score = leaderboardContent[rankingIndex[index]]['train_count_sum']
+	}
+
+	if(score == 0){
 		display_str += '<td class="Num table-center highlightBG"> </td>';
 	}
 	else{

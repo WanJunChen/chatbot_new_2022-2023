@@ -754,24 +754,24 @@
   justify-content: flex-end;
   align-items: flex-end;
 }
-.testLeaderboard_content table{
+.trainLeaderboard_content table, .testLeaderboard_content table{
   width: 100%;
   border-collapse: collapse;
 }
-.testLeaderboard_content table,th,tr,td{
+.trainLeaderboard_content table,th,tr,td, .testLeaderboard_content table,th,tr,td{
   border-bottom: solid 1px #ffffff;
   padding: 5px;
 }
-.testLeaderboard_content .table-center{
+.trainLeaderboard_content .table-center, .testLeaderboard_content .table-center{
   text-align: center;
 }
-.testLeaderboard_content img{
+.trainLeaderboard_content img, .testLeaderboard_content img{
   width: 60px;
 }
-.testLeaderboard_content .highlightBG{
+.trainLeaderboard_content .highlightBG, .testLeaderboard_content .highlightBG{
   background:#1c1c1c;
 }
-.testLeaderboard_content .Num{
+.trainLeaderboard_content .Num, .testLeaderboard_content .Num{
   color: #9bb8ca;
   font-size: 40px;
   text-align: center;
