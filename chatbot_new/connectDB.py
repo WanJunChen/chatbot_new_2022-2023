@@ -68,6 +68,7 @@ def update_ChatbotTrainRecord(SQuADList, bookName, user_id):
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
 def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot, user_id_challenger):
+
     # 新增一個新的挑戰紀錄
     find_user = {'User_id': user_id_chatbot}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
@@ -78,20 +79,26 @@ def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot,
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
 def update_ChatbotCorrectRecord(SQuADList, Challenge_id, bookName, chatbot_id):
+
+    # 更新該機器人該次挑戰的答對題數
     find_user = {'User_id': chatbot_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
+    
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
 def update_ChatbotTestRecord_content(SQuADList, Challenge_id, bookName, chatbot_id, question, answer, result):
+
+    # 更新該機器人的挑戰紀錄
     challengeQA = [question, answer, result]
     find_user = {'User_id': chatbot_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['content'].append(challengeQA)
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
-    # 在test_record裡多加一個content，裡面放多個「"問題"、"機器人答案"、"正確與否"」
 
 def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans, reason, page_list, questionType, time):
+
+    # 新增ElasticSearch中的資料
     question = question.replace("?", "").replace("？", "")
     mydict = {  'User_id': user_id,
                 'chatbotName': chatbotName,
@@ -114,6 +121,8 @@ def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans
     bulk(es, query)
 
 def search_ES_doc(es, dbBookName, user_id, question):
+    
+    # 搜尋ElasticSearch中匹配的問句
     question = question.replace("?", "").replace("？", "")
     search_ES_data = {"bool": {"must": [
         {
@@ -132,7 +141,9 @@ def search_ES_doc(es, dbBookName, user_id, question):
     result = es.search(index = dbBookName.lower(), query = search_ES_data)
     return result
 
-def find_DB_AllChatbotScore(SQuADList):
+def find_AllChatbotScore(SQuADList):
+
+    # 取得所有使用者的機器人答對比例(用於排行榜)
     userSQuAD_result = SQuADList.find()
     result = []
     scoreList = []
@@ -160,7 +171,9 @@ def find_DB_AllChatbotScore(SQuADList):
 
     return result, rankingIndex
 
-def find_DB_AllUser_trainCount(SQuADList):
+def find_AllUser_trainCount(SQuADList):
+
+    # 取得所有使用者的訓練題數(用於排行榜)
     userSQuAD_result = SQuADList.find()
     result = []
     trainCountList = []
@@ -177,6 +190,13 @@ def find_DB_AllUser_trainCount(SQuADList):
         result.append(user_score)
     rankingIndex = list(map(int, np.argsort(trainCountList)[::-1]))
     return result, rankingIndex
+
+def find_DB_ChatbotQArecord(SQuADList, user_id):
+
+    # 取得該user_id之機器人的問答紀錄
+    find_user = {'User_id': user_id}
+    userSQuAD_result = SQuADList.find_one(find_user)
+    return userSQuAD_result['QA_record']
 
 def search_ES_TrainContent(es, user_id):
     search_ES_data = {

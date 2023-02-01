@@ -687,7 +687,7 @@ function analyze_responseData(){
 	// 選擇訓練場或競技場後
 	if((session["params"]["game_mode"] == "訓練場" && session["params"]['NextScene'] == "Get_bookName") ||
 		(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Prompt_SQuAD")){
-		robotID = session["params"]['chatbotStyle'];
+		var robotID = session["params"]['chatbotStyle'];
 		// 將魚姐姐圖片轉換成學生自訂的機器人圖片，並顯示右側導覽區和書本頁面區
 		document.getElementById("fish").src = "/static/image/chatbot/"+robotID+".png";
 		document.getElementById("guide_id").style.display = "flex";
@@ -697,9 +697,9 @@ function analyze_responseData(){
 
 		// 存在問答遊戲模式，切換模式
 		console.log("已選擇問答遊戲模式:"+session["params"]["game_mode"]+"，切換遊戲背景");
-		Background_Img = '';
-		Mode_Words = '';
-		WordBG_color = ''
+		var Background_Img = '';
+		var Mode_Words = '';
+		var WordBG_color = ''
 		if (session["params"]["game_mode"] == "訓練場"){
 			Background_Img = TrainingRoom_ImageUrl;
 			WordBG_color = "#302b40";
@@ -709,7 +709,7 @@ function analyze_responseData(){
 			WordBG_color = "#00bfbe";
 			document.getElementById("menu_id").style.visibility = "hidden";
 		}
-		Mode_Words = '<div class="Mode_Words" style="background-color: ' + WordBG_color + ';">'
+		var Mode_Words = '<div class="Mode_Words" style="background-color: ' + WordBG_color + ';">'
 						+ session["params"]["game_mode"]
 						+ '</div>';
 		ModeBackground.innerHTML = '<div class="Mode_BGimg" style = "background-image: url('+ Background_Img +');"><center>' + Mode_Words + '</center></div>';
@@ -720,15 +720,16 @@ function analyze_responseData(){
 	// 在左上方顯示書籍封面、右方book區塊顯示書籍頁面
 	if(session["params"].hasOwnProperty("User_book") && session["params"]['NowScene'] == "Prompt_SQuAD"){
 		// 書本封面
+		var bookName = session["params"]["User_book"];
 		book.style.display = "block";
 		book_cover.style.display = "block"
-		book_showPages(false);
+		book_showPages();
 		book_cover.innerHTML = '<img src="' + Book_ImageFileUrl + bookName + '/cover.jpg"></img>';
 	}
 	
 	// 加上頁數的多選按鈕
 	if(session['params']['NextScene'] == "SQuAD_get_Page"){
-		allPageImg = '';
+		var allPageImg = '';
 		for(let i = 2; i <= 23; i++){
 			allPageImg += '<div class="page" id="bookPage' + i + '">';
 			allPageImg += '<label><input type="checkbox" onclick="user_sendPages(this)" name="pages" value=' + i + ' /><span class="round button">' + i + '</span></label>';
@@ -750,8 +751,8 @@ function analyze_responseData(){
 	// 競技場選機器人時，book區顯示所有機器人資訊
 	if(session["params"]["game_mode"] == "競技場" && session["params"]['NextScene'] == "Get_bookName"){
 		book.style.display = "block";
-		allUserData = session["params"]['allUserData']
-		allUserData_display = '<table>';
+		var allUserData = session["params"]['allUserData'];
+		var allUserData_display = '<table>';
 		for(var i = 0; i < allUserData.length; i++){
 			allUserData_display += '<tr><td style="text-align: center; width: 30%;"><img src="/static/image/chatbot/' + allUserData[i]['chatbotStyle'] + '.png"></td>';
 			allUserData_display += '<td class="botDataInfo"><p class="highlightText">' + allUserData[i]['chatbotName'] + '</p>主人：' + allUserData[i]['User_id'][0] + "班 " + allUserData[i]['User_id'][1] + "號" + '<br>答對率：' + allUserData[i]['score'] + '%</td></tr>';
@@ -760,44 +761,57 @@ function analyze_responseData(){
 		book.innerHTML = allUserData_display;
 		document.getElementById("menu_id").style.visibility = "hidden";
 	}
+	if(session["params"]["backToMainMenu"] == true){
+		delete session['params']['game_mode'];
+		delete session['params']['backToMainMenu'];
+		book.innerHTML = "";
+		book_cover.innerHTML = "";
+		book.style.display = "none";
+		document.getElementById("guide_id").style.display = "none";
+	}
 
 	/* 機器人檔案內容 */
 	if(session["params"]['NextScene'] == "Prompt_SQuAD" && session["params"]['game_mode'] == "訓練場"){
-		chatbot_info_display = "";
-		robotID = session["params"]['chatbotStyle'];
-		chatbot_name = '<p class="info_text" id="chatbotFile_botName_id">' + session["params"]['chatbotName'] + '</p>';
-		user_id = '<p class="info_text" id="chatbotFile_userId_id">' + session["params"]['User_id'].replace("_", "班 ") + '號</p>';
+		var chatbot_info_display = "";
+		var robotID = session["params"]['chatbotStyle'];
+		var chatbot_name = '<p class="info_text" id="chatbotFile_botName_id">' + session["params"]['chatbotName'] + '</p>';
+		var user_id = '<p class="info_text" id="chatbotFile_userId_id">' + session["params"]['User_id'].replace("_", "班 ") + '號</p>';
+		var leaderboardContent = session["params"]['leaderboardContent'];
+		var chatbot_score = '';
+		for(var i = 0; i < leaderboardContent.length; i ++){
+			if(leaderboardContent[i]['User_id'] == session["params"]['User_id']){
+				chatbot_score = '<p class="info_text">' + leaderboardContent[i]['score'] + '%</p>';
+				break;
+			}
+		}
 		document.getElementById("menu_id").style.visibility = "visible";
-		document.getElementById("trainRecord_content_id").style.visibility = "visible";
+		// document.getElementById("trainRecord_content_id").style.visibility = "visible";
 		chatbot_info_display += '<img id="bot_style" class="info_img"></img>' + chatbot_name;
 		chatbot_info_display += '<img id="user_id" class="info_img" src="/static/image/user-icon.png"></img>' + user_id;
+		chatbot_info_display += '<img class="info_img"" src="/static/image/score-icon.png">' + chatbot_score + '</img>'
 		
 		document.getElementById("chatbotFile_botInfo_id").innerHTML = chatbot_info_display;
 		document.getElementById("bot_style").src = "/static/image/chatbot/"+robotID+".png";
-		AllTrainContent = session["params"]['AllTrainContent'];
-		AllTrainCount = session["params"]['AllTrainCount'];
-		rankingIndex = session["params"]['trainRankingIndex'];
-		load_trainRecord_content(AllTrainContent);
-		load_leaderboard_content(AllTrainCount, rankingIndex, session['params']['User_id'], 'train');
-		load_testRecord_content();
 	}
-	if(session["params"].hasOwnProperty('AllTrainContent')){
+	if(session["params"].hasOwnProperty('AllTrainContent') && session["params"]['game_mode'] == "訓練場"){
 		console.log("更新訓練日誌、訓練題數排行榜");
-		AllTrainContent = session["params"]['AllTrainContent'];
-		AllTrainCount = session["params"]['AllTrainCount'];
-		rankingIndex = session["params"]['trainRankingIndex'];
+		var AllTrainContent = session["params"]['AllTrainContent'];
+		var AllTrainCount = session["params"]['AllTrainCount'];
+		var rankingIndex = session["params"]['trainRankingIndex'];
 		load_trainRecord_content(AllTrainContent);
 		load_leaderboard_content(AllTrainCount, rankingIndex, session['params']['User_id'], 'train');
 		delete session["params"]['AllTrainContent'];
 		delete session["params"]['AllTrainCount'];
 		delete session["params"]['trainRankingIndex'];
 	}
-	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('testRankingIndex')){
-		console.log("更新競技場排行榜");
-		leaderboardContent = session["params"]['leaderboardContent'];
-		rankingIndex = session["params"]['testRankingIndex'];
+	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('testRankingIndex') && session["params"]['game_mode'] == "訓練場"){
+		console.log("更新挑戰日誌、競技場排行榜");
+		var leaderboardContent = session["params"]['leaderboardContent'];
+		var rankingIndex = session["params"]['testRankingIndex'];
+		var User_QArecord = session["params"]['User_QArecord'];
 		console.log(leaderboardContent)
 		load_leaderboard_content(leaderboardContent, rankingIndex, session['params']['User_id'], "test")
+		load_testRecord_content(User_QArecord);
 		delete session["params"]['leaderboardContent'];
 		delete session["params"]['testRankingIndex'];
 	}
@@ -805,19 +819,12 @@ function analyze_responseData(){
 }
 
 // book頁面顯示
-function book_showPages(show_button){
-	bookName = session["params"]["User_book"];
-	OnePageImgUrl = '';
-	allPageImg = ''
+function book_showPages(){
+	var bookName = session["params"]["User_book"];
+	var OnePageImgUrl = '';
 	document.getElementById("book_id").innerHTML = '<div id="bookPage_id" style="width: 300px; height: 1650px; background-size: cover;"></div>';
 	OnePageImgUrl = Book_ImageFileUrl + bookName + '/Merge.jpg';
 	document.getElementById("bookPage_id").style.backgroundImage = "url('" + OnePageImgUrl + "')";
-	
-	// for(let i = 2; i <= 23; i++){
-	// 	OnePageImgUrl = Book_ImageFileUrl + bookName + '/' + i + '.jpg';
-	// 	document.getElementById("bookPage" + i).style.backgroundImage = "url('" + OnePageImgUrl + "')";
-	// 	document.getElementById("bookPage" + i).style.backgroundSize = "cover";
-	// }
 }
 
 
@@ -987,67 +994,104 @@ function load_trainRecord_content(AllTrainContent){
 	}
 }
 // 載入挑戰日誌
-function load_testRecord_content(){
-	document.getElementById("testRecord_content_id").innerHTML = "挑戰日誌-內文";
+function load_testRecord_content(QAContent){
+	document.getElementById("testRecord_content_id").innerHTML = "";
+	var display_str = '';
+	var challenger = '';
+	var content = [];
+	var len = 0;
+	var score = 0;
+	var book_testRecord = {};
+	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
+	var flag = false;
+	for(var i = 0; i < book_list.length; i ++){
+		if(QAContent.hasOwnProperty(book_list[i])){
+			book_testRecord = QAContent[book_list[i]]['test_record'];
+			len = Object.keys(book_testRecord).length;
+			flag = false;
+			for(var j = 0; j < len; j ++){
+				challenger = book_testRecord[j]['challenger_id'].replace("_", "班 ") + "號";
+				content = book_testRecord[j]['content'];
+				if(content.length > 0){
+					if(flag == false){ display_str += '<h2>' + book_list[i] + '</h2><br>';}
+					flag = true;
+					display_str += '<table><tr style="background: #523b6e;"><th>挑戰者 - ' + challenger + '</th>';
+					score = Math.round((book_testRecord[j]['correct_count']/content.length)*100);
+					display_str += '<th colspan="2">答對率：' + score + '%</th></tr>'; 
+					for(var k = 0; k < content.length; k ++){
+						if(content[k][1] == null){ content[k][1] = '---';}
+						if(content[k][2] == true){ content[k][2] = '<img src="/static/image/right.png">';}
+						if(content[k][2] == false){ content[k][2] = '<img src="/static/image/wrong.png">';}
+						display_str += '<tr><td class="question" style="border: 0;">' + content[k][0] + '</td>';
+						display_str += '<td class="answer" style="border: 0;">' + content[k][1] + '</td>';
+						display_str += '<td class="result" style="border: 0;">' + content[k][2] + '</td></tr>';
+					}
+					display_str += '</table>';
+
+				}
+			}
+		}
+	}
+	document.getElementById("testRecord_content_id").innerHTML = display_str;
 }
 // 載入訓練題數排行榜or競技場排行榜
 function load_leaderboard_content(leaderboardContent, rankingIndex, user_id, type){
-	var leaderboardContent_display = '';
-	score = 0
-	leaderboardContent_display = '<table><tr><th>你的機器人</th><th>你的資訊</th><th>你的名次</th></tr>'
+	var display_str = '';
+	score = 0;
+	display_str = '<table><tr><th>你的機器人</th><th>你的資訊</th><th>你的名次</th></tr>'
 	for(var i = 0; i < rankingIndex.length; i ++){
 		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
-			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, false, type);
+			display_str += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, false, type);
 		}
 	}
-	leaderboardContent_display += '<tr><td></td><td></td><td></td></tr>'
-	leaderboardContent_display += '<tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
+	display_str += '<tr><td></td><td></td><td></td></tr>'
+	display_str += '<tr><th>機器人</th><th>資訊</th><th>名次</th></tr>'
 	for(var i = 0; i < rankingIndex.length; i ++){
 		if (leaderboardContent[rankingIndex[i]]['User_id'] == user_id){
-			leaderboardContent_display += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, true, type);
+			display_str += leaderboardContent_display_User(leaderboardContent, rankingIndex, i, true, type);
 		}
 		else{
-			leaderboardContent_display += '<tr><td class="table-center"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
-			leaderboardContent_display += '<td>名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
+			display_str += '<tr><td class="table-center"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[i]]['chatbotStyle'] + '.png"></td>';
+			display_str += '<td>名稱：' + leaderboardContent[rankingIndex[i]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[i]]['User_id'].replace("_", "班 ") + "號";
 
 			if(type == "test"){
-				leaderboardContent_display += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['test_count_sum'];
-				leaderboardContent_display += '<br>答對率：' + leaderboardContent[rankingIndex[i]]['score'] + "%</td>";
-				score = leaderboardContent[rankingIndex[i]]['score']
+				display_str += '<br>答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[i]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[i]]['test_count_sum'];
+				display_str += '<br>答對率：' + leaderboardContent[rankingIndex[i]]['score'] + "%</td>";
+				score = leaderboardContent[rankingIndex[i]]['score'];
 			}
 			else if(type == "train"){
-				leaderboardContent_display += '<br>訓練題數：' + leaderboardContent[rankingIndex[i]]['train_count_sum'] + '</td>';
-				score = leaderboardContent[rankingIndex[i]]['train_count_sum']
+				display_str += '<br>訓練題數：' + leaderboardContent[rankingIndex[i]]['train_count_sum'] + '</td>';
+				score = leaderboardContent[rankingIndex[i]]['train_count_sum'];
 			}
 
 			if(score == 0){
-				leaderboardContent_display += '<td class="Num table-center"> </td>';
+				display_str += '<td class="Num table-center"> </td>';
 			}
 			else{
 				if(i < 3){
-					leaderboardContent_display += '<td class="Num table-center" style="color:yellow;">' + (i+1) + '</td>';
+					display_str += '<td class="Num table-center" style="color:yellow;">' + (i+1) + '</td>';
 				}
 				else{
-					leaderboardContent_display += '<td class="Num table-center">' + (i+1) + '</td>';
+					display_str += '<td class="Num table-center">' + (i+1) + '</td>';
 				}
 			}
 		}
 	}
-	leaderboardContent_display += '</table>'
+	display_str += '</table>'
 	if(type == "test"){
 		document.getElementById("testLeaderboard_content_id").innerHTML = '';
-		document.getElementById("testLeaderboard_content_id").innerHTML = leaderboardContent_display;
+		document.getElementById("testLeaderboard_content_id").innerHTML = display_str;
 	}
 	else if(type == "train"){
 		document.getElementById("trainLeaderboard_content_id").innerHTML = '';
-		document.getElementById("trainLeaderboard_content_id").innerHTML = leaderboardContent_display;
+		document.getElementById("trainLeaderboard_content_id").innerHTML = display_str;
 	}
 }
 function leaderboardContent_display_User(leaderboardContent, rankingIndex, index, detail_info, type){
 	display_str = '';
-	score = 0
+	score = 0;
 	display_str += '<tr><td class="table-center highlightBG"><img src="/static/image/chatbot/' + leaderboardContent[rankingIndex[index]]['chatbotStyle'] + '.png"></td>';
-	display_str += '<td class="highlightBG">'
+	display_str += '<td class="highlightBG">';
 	if(detail_info == true){
 		display_str += '名稱：' + leaderboardContent[rankingIndex[index]]['chatbotName'] + '<br>主人：' + leaderboardContent[rankingIndex[index]]['User_id'].replace("_", "班 ") + "號<br>";
 	}
@@ -1055,11 +1099,11 @@ function leaderboardContent_display_User(leaderboardContent, rankingIndex, index
 	if(type == "test"){
 		display_str += '答對題數 / 被測驗題數：' + leaderboardContent[rankingIndex[index]]['correct_count_sum'] + ' / ' + leaderboardContent[rankingIndex[index]]['test_count_sum'] + '<br>';
 		display_str += '答對率：' + leaderboardContent[rankingIndex[index]]['score'] + '%</td>';
-		score = leaderboardContent[rankingIndex[index]]['score']
+		score = leaderboardContent[rankingIndex[index]]['score'];
 	}
 	else if(type == "train"){
 		display_str += '訓練題數：' + leaderboardContent[rankingIndex[index]]['train_count_sum'] + '</td>';
-		score = leaderboardContent[rankingIndex[index]]['train_count_sum']
+		score = leaderboardContent[rankingIndex[index]]['train_count_sum'];
 	}
 
 	if(score == 0){
