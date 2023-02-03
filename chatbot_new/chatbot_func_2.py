@@ -11,6 +11,8 @@ import pandas as pd
 import Get_squadAnswer
 import Get_squadBook
 import config
+from threading import Timer
+from time import sleep
 
 myClient: object
 myBotData: object
@@ -23,7 +25,7 @@ test_count: int
 correct_count: int
 # Prompt_task_list = ['Time', 'Location', 'Affection', 'Life']
 Prompt_task_list = ['Time']
-classList = ["501", "502", "503", "504", "505", "506"]
+classList = ["501", "502", "503", "504", "505", "506", "509"]
 # set chatMode to 'chatBook' or 'QA'
 chatMode = 'QA'
 # 每本書共有23頁(都從第2頁開始)
@@ -883,7 +885,8 @@ def Get_bookName(req):
                 button_item.append({'title': index + 1})
 
             leaderboardContent, testRankingIndex = connectDB.find_AllChatbotScore(myUserSQuADList)
-            User_QArecord = connectDB.find_DB_ChatbotQArecord(myUserSQuADList, user_id)
+            User_TestRecord = connectDB.find_DB_ChatbotQArecord(myUserSQuADList, user_id)
+            User_TrainRecord = connectDB.search_ES_TrainContent(es, user_id)
             AllTrainCount, trainRankingIndex = connectDB.find_AllUser_trainCount(myUserSQuADList)
             response_dict = {
                 "prompt": {
@@ -905,10 +908,10 @@ def Get_bookName(req):
                         "User_id": user_id,
                         "chatbotName": chatbotName,
                         "NextScene": "Prompt_SQuAD",
-                        "AllTrainContent": connectDB.search_ES_TrainContent(es, user_id),
+                        "User_TrainRecord": User_TrainRecord,
                         "AllTrainCount": AllTrainCount,
                         "trainRankingIndex": trainRankingIndex,
-                        "User_QArecord": User_QArecord,
+                        "User_TestRecord": User_TestRecord,
                         "leaderboardContent": leaderboardContent,
                         "testRankingIndex": testRankingIndex,
                         "chatbotStyle": chatbotStyle
@@ -1428,7 +1431,6 @@ def SQuAD_get_Type(req):
         connectDB.addQADialog(myDialogList, dialog_id + 1, 'chatbot ' + chatbotName, response, time, session_id, gameMode, req['scene']['name'])
     
     thinking_word = get_thinkingWord()
-    AllTrainCount, trainRankingIndex = connectDB.find_AllUser_trainCount(myUserSQuADList)
     response_dict = {
             "prompt": {
                 "firstSimple": {
@@ -1450,10 +1452,7 @@ def SQuAD_get_Type(req):
                     "NowScene": "SQuAD_get_Type",
                     "NextScene": "SQuAD_get_Ans",
                     "User_question": userSay,
-                    "thinking_word": thinking_word,
-                    "AllTrainContent": connectDB.search_ES_TrainContent(es, user_id),
-                    "AllTrainCount": AllTrainCount,
-                    "trainRankingIndex": trainRankingIndex
+                    "thinking_word": thinking_word
                 }
             }
         }
@@ -1508,6 +1507,7 @@ def SQuAD_get_Ans(req):
     Exist_Ans = False 
     answerFrom = ''
     ask_for_Ans = False
+    backToMainMenu = False
     # 從ElasticSearch知識庫中找紀錄
     if bookName in now_user["QA_record"].keys():
         ESBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
@@ -1635,6 +1635,8 @@ def SQuAD_chatbot_Reply(req):
     updateChatbotFile = False
     ask_for_Ans = False
     thinking_word = get_thinkingWord()
+    backToMainMenu = False
+    User_TrainRecord = ''
 
     button_item = []
     # 當學生提出問句的建議解答後
@@ -1711,8 +1713,7 @@ def SQuAD_chatbot_Reply(req):
     dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
     connectDB.addQADialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, gameMode, req['scene']['name'])
     connectDB.addQADialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, gameMode, req['scene']['name'])
-    if userSay[:2] == "因為":
-        userSay = userSay.replace("因為", "")
+    
     response_dict = {
         "prompt": {
             "firstSimple": {
@@ -1742,10 +1743,12 @@ def SQuAD_chatbot_Reply(req):
         },
     }
     if updateChatbotFile == True:
+        sleep(1)
+        User_TrainRecord = connectDB.search_ES_TrainContent(es, user_id)
         AllTrainCount, trainRankingIndex = connectDB.find_AllUser_trainCount(myUserSQuADList)
-        response_dict['session']['params']['AllTrainContent'] = connectDB.search_ES_TrainContent(es, user_id)
+        response_dict['session']['params']['User_TrainRecord'] = User_TrainRecord
         response_dict['session']['params']['AllTrainCount'] = AllTrainCount
-        response_dict['session']['params']['rankingIndex'] = trainRankingIndex
+        response_dict['session']['params']['trainRankingIndex'] = trainRankingIndex
     if gameMode == "競技場":
         response_dict['session']['params']['Challenge_id'] = Challenge_id
     print(response)
@@ -1775,8 +1778,7 @@ def SQuAD_get_Reason(req):
     dialog_id = myDialogList.find()[dialog_index - 1]['Dialog_id'] + 1
     connectDB.addQADialog(myDialogList, dialog_id, 'Student ' + user_id, userSay, time, session_id, gameMode, req['scene']['name'])
     connectDB.addQADialog(myDialogList, dialog_id, 'chatbot ' + chatbotName, response, time, session_id, gameMode, req['scene']['name'])
-    if userSay[:2] == "因為":
-        userSay = userSay.replace("因為", "")
+    
     if userSay == "不知道":
         userSay = None
     response_dict = {
@@ -1834,12 +1836,15 @@ def SQuAD_get_Page(req):
         pages = list(map(int, userSay.split(",")))
         response = "第" + userSay.replace(",", "、") + "頁，我記住了！謝謝你告訴我，你可以繼續問我問題囉！"
     
-    # 將DB中該本書的訓練次數加一，並將問句、建議答案、頁數及原因存入ElasticSearch
+    # 將DB中該本書的訓練次數加一
     connectDB.update_ChatbotTrainRecord(myUserSQuADList, bookName, user_id)
+    # 將問句、建議答案、頁數及原因存入ElasticSearch
     connectDB.update_ES_doc(es, dbBookName, user_id, chatbotName, UserQuestion, UserAns, UserReason, pages, UserQuestionType, time)
     
     thinking_word = get_thinkingWord()
-    
+    sleep(1)
+    User_TrainRecord = connectDB.search_ES_TrainContent(es, user_id)
+    AllTrainCount, trainRankingIndex = connectDB.find_AllUser_trainCount(myUserSQuADList)
     # 記錄對話
     myDialogList = nowBook['QA_Dialog']
     dialog_index = myDialogList.find().count()
@@ -1867,7 +1872,10 @@ def SQuAD_get_Page(req):
                 "User_book": bookName,
                 "thinking_word": thinking_word,
                 "NowScene": "SQuAD_get_Page",
-                "NextScene": "SQuAD_get_Type"
+                "NextScene": "SQuAD_get_Type",
+                "User_TrainRecord": User_TrainRecord,
+                "AllTrainCount": AllTrainCount,
+                "trainRankingIndex": trainRankingIndex
             }
         },
     }
