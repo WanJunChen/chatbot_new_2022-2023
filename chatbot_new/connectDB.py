@@ -83,7 +83,6 @@ def update_ChatbotCorrectRecord(SQuADList, Challenge_id, bookName, chatbot_id):
     # 更新該機器人該次挑戰的答對題數
     find_user = {'User_id': chatbot_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count'] += 1
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
@@ -191,13 +190,6 @@ def find_AllUser_trainCount(SQuADList):
     rankingIndex = list(map(int, np.argsort(trainCountList)[::-1]))
     return result, rankingIndex
 
-def find_DB_ChatbotQArecord(SQuADList, user_id):
-
-    # 取得該user_id之機器人的問答紀錄
-    find_user = {'User_id': user_id}
-    userSQuAD_result = SQuADList.find_one(find_user)
-    return userSQuAD_result['QA_record']
-
 def search_ES_TrainContent(es, user_id):
     search_ES_data = {
         "query": {
@@ -223,5 +215,15 @@ def search_ES_TrainContent(es, user_id):
         },
         "size": 100
     }
+    
     result = es.search(search_ES_data)
     return result
+
+def find_DB_ChatbotQArecord(SQuADList, user_id):
+
+    # 取得該user_id之機器人的被挑戰問答紀錄
+    find_user = {'User_id': user_id}
+    userSQuAD_result = SQuADList.find_one(find_user)
+    return userSQuAD_result['QA_record']
+
+
