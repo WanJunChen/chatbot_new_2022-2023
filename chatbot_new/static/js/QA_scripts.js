@@ -30,7 +30,7 @@ var usersay_last= "";
 var sync_waitInput_flag = 0;
 var rec_imageUrl = "";
 var post_count = 0;
-var suggest_arr = ["501", "502", "503", "504", "505", "506"];
+var suggest_arr = ["501", "502", "503", "504", "505", "506", "509"];
 var score = 0;
 var suggest_exist = 0;
 // 心情變數 PA
@@ -38,7 +38,7 @@ var CE_P=0;
 var CE_A=0;
 var selected_page = []
 var toHiddenID = "Character"
-var AllTrainContent;
+var User_TrainRecord;
 var leaderboardContent;
 var rankingIndex;
 
@@ -785,7 +785,11 @@ function analyze_responseData(){
 			}
 		}
 		document.getElementById("menu_id").style.visibility = "visible";
-		// document.getElementById("trainRecord_content_id").style.visibility = "visible";
+		document.getElementById("mwt_border_id").style.display = "block";
+		setTimeout(function(){
+			document.getElementById("mwt_border_id").style.display = "none";
+		},10000);
+		document.getElementById("trainRecord_content_id").style.visibility = "visible";
 		chatbot_info_display += '<img id="bot_style" class="info_img"></img>' + chatbot_name;
 		chatbot_info_display += '<img id="user_id" class="info_img" src="/static/image/user-icon.png"></img>' + user_id;
 		chatbot_info_display += '<img class="info_img"" src="/static/image/score-icon.png">' + chatbot_score + '</img>'
@@ -793,25 +797,25 @@ function analyze_responseData(){
 		document.getElementById("chatbotFile_botInfo_id").innerHTML = chatbot_info_display;
 		document.getElementById("bot_style").src = "/static/image/chatbot/"+robotID+".png";
 	}
-	if(session["params"].hasOwnProperty('AllTrainContent') && session["params"]['game_mode'] == "訓練場"){
-		console.log("更新訓練日誌、訓練題數排行榜");
-		var AllTrainContent = session["params"]['AllTrainContent'];
+	if(session["params"].hasOwnProperty('User_TrainRecord') && session["params"]['game_mode'] == "訓練場"){
+		console.log("更新訓練檔案、訓練題數排行榜");
+		var User_TrainRecord = session["params"]['User_TrainRecord'];
 		var AllTrainCount = session["params"]['AllTrainCount'];
 		var rankingIndex = session["params"]['trainRankingIndex'];
-		load_trainRecord_content(AllTrainContent);
+		load_trainRecord_content(User_TrainRecord);
 		load_leaderboard_content(AllTrainCount, rankingIndex, session['params']['User_id'], 'train');
-		delete session["params"]['AllTrainContent'];
+		delete session["params"]['User_TrainRecord'];
 		delete session["params"]['AllTrainCount'];
 		delete session["params"]['trainRankingIndex'];
 	}
 	if(session["params"].hasOwnProperty('leaderboardContent') && session["params"].hasOwnProperty('testRankingIndex') && session["params"]['game_mode'] == "訓練場"){
-		console.log("更新挑戰日誌、競技場排行榜");
+		console.log("更新挑戰檔案、競技場排行榜");
 		var leaderboardContent = session["params"]['leaderboardContent'];
 		var rankingIndex = session["params"]['testRankingIndex'];
-		var User_QArecord = session["params"]['User_QArecord'];
+		var User_TestRecord = session["params"]['User_TestRecord'];
 		console.log(leaderboardContent)
 		load_leaderboard_content(leaderboardContent, rankingIndex, session['params']['User_id'], "test")
-		load_testRecord_content(User_QArecord);
+		load_testRecord_content(User_TestRecord);
 		delete session["params"]['leaderboardContent'];
 		delete session["params"]['testRankingIndex'];
 	}
@@ -901,7 +905,7 @@ function backToMainMenu(){
 
 	send_userJson();
 }
-// 打開訓練日誌
+// 打開訓練檔案
 function openTrainRecord(){
 	// 按鈕變化:選擇
 	document.getElementById("trainRecordBtn_id").style.background = "#523b6e";
@@ -937,7 +941,7 @@ function openTrainLeaderboard(){
 	document.getElementById("testRecord_content_id").style.visibility = "hidden";	
 	document.getElementById("testLeaderboard_content_id").style.visibility = "hidden";	
 }
-// 打開挑戰日誌
+// 打開挑戰檔案
 function openTestRecord(){
 	// 按鈕變化:選擇
 	document.getElementById("testRecordBtn_id").style.background = "#523b6e";
@@ -973,27 +977,43 @@ function openTestLeaderboard(){
 	document.getElementById("testRecord_content_id").style.visibility = "hidden";	
 	document.getElementById("testLeaderboard_content_id").style.visibility = "visible";	
 }
-// 載入訓練日誌
-function load_trainRecord_content(AllTrainContent){
-	var AllTrainContent_display = '';
-	var index = 0;
+// 載入訓練檔案
+function load_trainRecord_content(User_TrainRecord){
+	var display_str = '';
+	var ES_bookName = ''
+	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
+	var flag_bookStart = false, flag_bookEnd = false;
 	document.getElementById("trainRecord_content_id").innerHTML = '';
-	// console.log(AllTrainContent);
-	if(AllTrainContent["hits"]["hits"].length == 0){
-		AllTrainContent_display = '你還沒有訓練過' + session['params']['chatbotName'] + '喔！';
-		document.getElementById("trainRecord_content_id").innerHTML = AllTrainContent_display;
+	if(User_TrainRecord["hits"]["hits"].length == 0){
+		display_str = '<h3>你還沒有訓練過' + session['params']['chatbotName'] + '喔！</h3>';
+		document.getElementById("trainRecord_content_id").innerHTML = display_str;
 	}
-	for(var i = AllTrainContent["hits"]["hits"].length; i > 0; i --){
-		index += 1;
-		AllTrainContent_display = '';
-		AllTrainContent_display += '<div class="chatbotFile_QA"><span class="frame QAbook">書名</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_index"].replace(/_/g, " ") + '</span><br>';
-		AllTrainContent_display += '<span class="frame Q">問題</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_source"]["Question"] + '?</span><br>';
-		AllTrainContent_display += '<span class="frame A">解答</span><span>' + AllTrainContent["hits"]["hits"][i-1]["_source"]["Answer"] + '</span></div>';
-		AllTrainContent_display += '<div class="Num">' + index + '</div>'
-		document.getElementById("trainRecord_content_id").innerHTML += AllTrainContent_display + "<hr>";
+	else{
+		for(var i = 0; i < book_list.length; i ++){
+			flag_bookStart = false;
+			flag_bookEnd = false;
+			for(var j = User_TrainRecord["hits"]["hits"].length; j > 0; j --){
+				ES_bookName = User_TrainRecord["hits"]["hits"][j-1]["_index"].replace(/_/g, " ")
+				if(ES_bookName == book_list[i].toLowerCase()){
+					if(flag_bookStart == false){
+						display_str += '<h2>' + book_list[i] + '</h2>';
+						display_str += '<table>';
+					}
+					flag_bookStart = true;
+					flag_bookEnd = true;
+					display_str += '<tr><td class="question" style="border: 0;">' + User_TrainRecord["hits"]["hits"][j-1]["_source"]["Question"] + '</td>';
+					display_str += '<td class="answer" style="border: 0;">' + User_TrainRecord["hits"]["hits"][j-1]["_source"]["Answer"] + '</td></tr>';
+				
+				}
+			}
+			if(flag_bookEnd == true){
+				display_str += '</table><br>';
+			}
+		}
 	}
+	document.getElementById("trainRecord_content_id").innerHTML = display_str;
 }
-// 載入挑戰日誌
+// 載入挑戰檔案
 function load_testRecord_content(QAContent){
 	document.getElementById("testRecord_content_id").innerHTML = "";
 	var display_str = '';
@@ -1003,18 +1023,21 @@ function load_testRecord_content(QAContent){
 	var score = 0;
 	var book_testRecord = {};
 	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
-	var flag = false;
+	var flag_bookStart = false, flag_bookEnd = false;
+	
 	for(var i = 0; i < book_list.length; i ++){
+		flag_bookEnd = false;
 		if(QAContent.hasOwnProperty(book_list[i])){
 			book_testRecord = QAContent[book_list[i]]['test_record'];
 			len = Object.keys(book_testRecord).length;
-			flag = false;
+			flag_bookStart = false;
 			for(var j = 0; j < len; j ++){
 				challenger = book_testRecord[j]['challenger_id'].replace("_", "班 ") + "號";
 				content = book_testRecord[j]['content'];
 				if(content.length > 0){
-					if(flag == false){ display_str += '<h2>' + book_list[i] + '</h2><br>';}
-					flag = true;
+					if(flag_bookStart == false){ display_str += '<h2>' + book_list[i] + '</h2>';}
+					flag_bookStart = true;
+					flag_bookEnd = true;
 					display_str += '<table><tr style="background: #523b6e;"><th>挑戰者 - ' + challenger + '</th>';
 					score = Math.round((book_testRecord[j]['correct_count']/content.length)*100);
 					display_str += '<th colspan="2">答對率：' + score + '%</th></tr>'; 
@@ -1031,6 +1054,12 @@ function load_testRecord_content(QAContent){
 				}
 			}
 		}
+		if(flag_bookEnd == true){
+			display_str += '<br>';
+		}
+	}
+	if(display_str == ''){
+		display_str = '<h3>' + session['params']['chatbotName'] + '還沒有被任何人挑戰過喔！</h3>';
 	}
 	document.getElementById("testRecord_content_id").innerHTML = display_str;
 }

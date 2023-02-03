@@ -21,6 +21,10 @@
     <!-- 對話顯示 -->
     <div class="talk_content" id="talk_content_id" style="position:absolute;">	 
       <img id="menu_id" class="menu" src="{{url_for('static', filename='image/menu.png')}}" onclick="openChatbotFile()">
+      <div id="mwt_border_id" class="mwt_border" style="position:absolute; display: none;">
+        <span class="arrow"></span>
+        點開看看你的機器人檔案吧
+      </div>
         <div class="info_content" id="info_content_id">  
           <div class="botsay" id="botsay">               
             <div class="dialog-bottom" >哈囉！<br>我是魚姊姊，請先告訴我你的班級唷！</div>
@@ -32,10 +36,10 @@
             <input type="image" class="closebtn"  src="{{url_for('static', filename='image/close.png')}}" onclick="cloceChatbotFile()">
             <input type="image" class="homeBtn" id="homeBtn_id" src="{{url_for('static', filename='image/home.png')}}" onclick="backToMainMenu()">
             <div class="chatbotFile_head">
-              <input type="button" class="trainRecordBtn" id="trainRecordBtn_id" value="訓練日誌" onclick="openTrainRecord()">
+              <input type="button" class="trainRecordBtn" id="trainRecordBtn_id" value="訓練檔案" onclick="openTrainRecord()">
               <input type="button" class="trainLeaderboardBtn" id="trainLeaderboardBtn_id" value="訓練題數排行榜" onclick="openTrainLeaderboard()">
               <br>
-              <input type="button" class="testRecordBtn" id="testRecordBtn_id" value="挑戰日誌" onclick="openTestRecord()">
+              <input type="button" class="testRecordBtn" id="testRecordBtn_id" value="挑戰檔案" onclick="openTestRecord()">
               <input type="button" class="testLeaderboardBtn" id="testLeaderboardBtn_id" value="競技場排行榜" onclick="openTestLeaderboard()">
             </div>
             <div class="chatbotFile_botInfo" id="chatbotFile_botInfo_id"></div>
