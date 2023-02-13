@@ -40,13 +40,12 @@ def addDialog(dialogList, dialog_id, speaker_id, content, time, session_id, prom
     dialogList.insert_one(mydict)
     print(mydict)
 
-def addQADialog(dialogList, dialog_id, speaker_id, content, time, session_id, game_mode, prompt_phase):
+def addQADialog(dialogList, dialog_id, speaker_id, speaker, content, time, session_id, game_mode, prompt_phase):
 
-    mydict = {'Dialog_id': dialog_id, 'Speaker_id': speaker_id, 'Content': content, 'Game_mode': game_mode, 'Phase': prompt_phase,
+    mydict = {'Dialog_id': dialog_id, 'Speaker_id': speaker_id, 'Speaker': speaker, 'Content': content.replace("<br>", ""), 'Game_mode': game_mode, 'Phase': prompt_phase,
               'Time': time, 'Session_id': session_id}
     dialogList.insert_one(mydict)
     print(mydict)
-
 
 def addFeedback(feedbackList, userId, sentiment, feedback):
 
@@ -78,18 +77,16 @@ def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot,
                                                                         'content': []}
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
-def update_ChatbotCorrectRecord(SQuADList, Challenge_id, bookName, chatbot_id):
 
-    # 更新該機器人該次挑戰的答對題數
-    find_user = {'User_id': chatbot_id}
-    userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
-    userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['correct_count'] += 1
-    SQuADList.update_one(find_user, {"$set": userSQuAD_result})
-
-def update_ChatbotTestRecord_content(SQuADList, Challenge_id, bookName, chatbot_id, question, answer, result):
+def update_ChatbotTestRecord_content(SQuADList, Challenge_id, bookName, chatbot_id, question, answer, answerFrom, result):
 
     # 更新該機器人的挑戰紀錄
-    challengeQA = [question, answer, result]
+    challengeQA = {"question": question,
+        "answer": answer,
+        "answerFrom": answerFrom,
+        "result": result,
+        "adjusted_result": None,
+        "valid": True}
     find_user = {'User_id': chatbot_id}
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)]['content'].append(challengeQA)
@@ -119,6 +116,21 @@ def update_ES_doc(es, dbBookName, user_id, chatbotName, question, suggestion_Ans
     ]
     bulk(es, query)
 
+def add_DB_TrainData(trainDataList, user_id, question, questionType, SystemAns, answerFrom, result, UserAns, reason, page_list, time):
+    
+    mydict = {'User_id': user_id,
+        'question': question,
+        'type': questionType,
+        'bot_answer': SystemAns,
+        'bot_answerFrom': answerFrom,
+        'result': result,
+        'user_answer': UserAns,
+        'reason': reason,
+        'page': page_list,
+        'Time': time}
+    trainDataList.insert_one(mydict)
+    print(mydict)
+    
 def search_ES_doc(es, dbBookName, user_id, question):
     
     # 搜尋ElasticSearch中匹配的問句
@@ -152,8 +164,11 @@ def find_AllChatbotScore(SQuADList):
         user_score = {}
         for book in user['QA_record']:
             for index in user['QA_record'][book]['test_record']:
-                test_count_sum += len(user['QA_record'][book]['test_record'][index]['content'])
-                correct_count_sum += user['QA_record'][book]['test_record'][index]['correct_count']
+                for data in user['QA_record'][book]['test_record'][index]['content']:
+                    if data['valid'] == True:
+                        test_count_sum += 1
+                        if data['result'] == True:
+                            correct_count_sum += 1
         user_score['User_id'] = user['User_id']
         user_score['chatbotName'] = user['chatbotName']
         user_score['chatbotStyle'] = user['chatbotStyle']

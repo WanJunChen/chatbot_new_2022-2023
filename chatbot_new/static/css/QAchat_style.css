@@ -795,13 +795,17 @@
   width: 50%;
 }
 .testRecord_content .answer{
-  width: 45%;
+  width: 35%;
 }
 .testRecord_content .result{
   width: 5%;
 }
 .testRecord_content .result img{
   width: 15px;
+}
+.testRecord_content .valid{
+  color: red;
+  width: 10px;
 }
 .trainLeaderboard_content table, .testLeaderboard_content table{
   width: 100%;

@@ -1021,6 +1021,8 @@ function load_testRecord_content(QAContent){
 	var content = [];
 	var len = 0;
 	var score = 0;
+	var content_length = 0;
+	var correct_count = 0;
 	var book_testRecord = {};
 	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
 	var flag_bookStart = false, flag_bookEnd = false;
@@ -1039,15 +1041,42 @@ function load_testRecord_content(QAContent){
 					flag_bookStart = true;
 					flag_bookEnd = true;
 					display_str += '<table><tr style="background: #523b6e;"><th>挑戰者 - ' + challenger + '</th>';
-					score = Math.round((book_testRecord[j]['correct_count']/content.length)*100);
-					display_str += '<th colspan="2">答對率：' + score + '%</th></tr>'; 
+					content_length = 0;
+					correct_count = 0;
+					for(var l = 0; l < content.length; l ++){
+						if(content[l]['valid'] == true){
+							content_length ++;
+							if(content[l]['adjusted_result'] == null){
+								if(content[l]['result'] == true){ correct_count ++; }
+							}
+							else{
+								if(content[l]['adjusted_result'] == true){ correct_count ++; }
+							}
+						}
+					}
+					score = Math.round((correct_count/content_length)*100);
+					display_str += '<th colspan="3">答對率：' + score + '%</th></tr>'; 
 					for(var k = 0; k < content.length; k ++){
 						if(content[k][1] == null){ content[k][1] = '---';}
-						if(content[k][2] == true){ content[k][2] = '<img src="/static/image/right.png">';}
-						if(content[k][2] == false){ content[k][2] = '<img src="/static/image/wrong.png">';}
-						display_str += '<tr><td class="question" style="border: 0;">' + content[k][0] + '</td>';
-						display_str += '<td class="answer" style="border: 0;">' + content[k][1] + '</td>';
-						display_str += '<td class="result" style="border: 0;">' + content[k][2] + '</td></tr>';
+						display_str += '<tr><td class="question" style="border: 0;">' + content[k]['question'] + '</td>';
+						display_str += '<td class="answer" style="border: 0;">' + content[k]['answer'] + '</td>';
+						if(content[k]['adjusted_result'] == null){
+							if(content[k]['result'] == true){ content[k]['result'] = '<img src="/static/image/right.png">';}
+							if(content[k]['result'] == false){ content[k]['result'] = '<img src="/static/image/wrong.png">';}
+							display_str += '<td class="result" style="border: 0;">' + content[k]['result'] + '</td>';
+						}
+						else{
+							if(content[k]['adjusted_result'] == true){ content[k]['adjusted_result'] = '<img src="/static/image/right.png">';}
+							if(content[k]['adjusted_result'] == false){ content[k]['adjusted_result'] = '<img src="/static/image/wrong.png">';}
+							display_str += '<td class="result" style="border: 0;">' + content[k]['adjusted_result'] + '</td>';
+						}
+
+						if(content[k]['valid'] == true){
+							display_str += '<td class="valid" style="border: 0;"></td></tr>';
+						}
+						else{
+							display_str += '<td class="valid" style="border: 0;">無效</td></tr>';
+						}
 					}
 					display_str += '</table>';
 
