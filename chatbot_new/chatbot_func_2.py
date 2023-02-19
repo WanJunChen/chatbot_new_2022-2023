@@ -25,7 +25,7 @@ test_count: int
 correct_count: int
 # Prompt_task_list = ['Time', 'Location', 'Affection', 'Life']
 Prompt_task_list = ['Time']
-classList = ["501", "502", "503", "504", "505", "506", "509"]
+classList = ["501", "502", "503", "504", "505", "506"]
 # set chatMode to 'chatBook' or 'QA'
 chatMode = 'QA'
 # 每本書共有23頁(都從第2頁開始)
@@ -1671,7 +1671,6 @@ def SQuAD_chatbot_Reply(req):
             if len(userSay) != 0:
                 response = "那你可以告訴我為什麼嗎？告訴我原因吧，如果不知道就按下「不知道」。"
                 nextScene = "SQuAD_get_Reason"
-                answerFrom = None
                 ask_for_Ans = False
             else:
                 response = "請輸入你的答案"

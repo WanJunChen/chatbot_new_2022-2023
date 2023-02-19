@@ -167,8 +167,12 @@ def find_AllChatbotScore(SQuADList):
                 for data in user['QA_record'][book]['test_record'][index]['content']:
                     if data['valid'] == True:
                         test_count_sum += 1
-                        if data['result'] == True:
-                            correct_count_sum += 1
+                        if data['adjusted_result'] == None:
+                            if data['result'] == True:
+                                 correct_count_sum += 1
+                        else:
+                            if data['adjusted_result'] == True:
+                                correct_count_sum += 1
         user_score['User_id'] = user['User_id']
         user_score['chatbotName'] = user['chatbotName']
         user_score['chatbotStyle'] = user['chatbotStyle']

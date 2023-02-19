@@ -30,7 +30,7 @@ var usersay_last= "";
 var sync_waitInput_flag = 0;
 var rec_imageUrl = "";
 var post_count = 0;
-var suggest_arr = ["501", "502", "503", "504", "505", "506", "509"];
+var suggest_arr = ["501", "502", "503", "504", "505", "506"];
 var score = 0;
 var suggest_exist = 0;
 // 心情變數 PA
