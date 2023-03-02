@@ -30,11 +30,17 @@ classList = ["501", "502", "503", "504", "505", "506"]
 chatMode = 'QA'
 # 每本書共有23頁(都從第2頁開始)
 number_of_page = 23
-book_list = [   'Ralph the Puppy',
-                'Birthday Presents',
-                'My Special Friend',
-                'Little Donkey',
-                'Salt and Sugar']
+# book_list = [   'Ralph the Puppy',
+#                 'Birthday Presents',
+#                 'My Special Friend',
+#                 'Little Donkey',
+#                 'Salt and Sugar']        
+book_list = [   'A Journey of Love',
+                "Mission I'm Possible",
+                'One Two Three... Fly!',
+                'Ryan the Rooster',
+                "The Piano Isn't at Home"]
+
 Question_Type = { 'Character'         :'人物',
                 'Setting'           :'時間地點',
                 'Action'            :'行為',
@@ -62,7 +68,7 @@ def check_input(req):
         else:
             user_id = req['user']['User_id']
         session_id = req['session']['id']
-        dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+        dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
         nowBook = myClient[dbBookName]
         myMaterialList = nowBook['MaterialTable']
         myDialogList = nowBook['S_R_Dialog']
@@ -1115,7 +1121,7 @@ def match_book(req):
             time = req['user']['lastSeenTime']
             user_id = req['session']['params']['User_id']
             bookName = temp_bookList[userInput]
-            dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+            dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
             nowBook = myClient[dbBookName]
 
             myDialogList = nowBook['S_R_Dialog']
@@ -1192,7 +1198,7 @@ def match_book(req):
                     connectDB.updateUser(myUserList, partner, bookName, state, user_id)
 
 
-                dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+                dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
                 nowBook = myClient[dbBookName]
                 myMaterialList = nowBook['MaterialTable']
                 material_result = myMaterialList.find_one({})
@@ -1333,7 +1339,7 @@ def Prompt_SQuAD(req):
     elif gameMode == "競技場":
         bookName = challenge_bookList[int(userInput)-1]
     response += "看到右邊的書本內容了嗎，滑動看看吧。<br>" + choice(accept_question_result['content'])+"<br>(請在下方輸入你的問題)"
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['QA_Dialog']
     # 記錄對話過程
@@ -1413,7 +1419,7 @@ def SQuAD_get_Type(req):
     gameMode = req['session']['params']['game_mode']
     chatbotName = req['session']['params']['chatbotName']
     bookName = req['session']['params']['User_book']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['QA_Dialog']
     response = '你的這個問題「XXX」是哪一類的問題呢？'
@@ -1474,7 +1480,7 @@ def SQuAD_get_Ans(req):
     chatbotName = req['session']['params']['chatbotName']
     gameMode = req['session']['params']['game_mode']
     response = ""
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['QA_Dialog']
     button_item = []
@@ -1516,7 +1522,7 @@ def SQuAD_get_Ans(req):
     backToMainMenu = False
     # 從ElasticSearch知識庫中找紀錄
     if bookName in now_user["QA_record"].keys():
-        ESBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+        ESBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
         result = connectDB.search_ES_doc(es, ESBookName, now_user['User_id'], UserQuestion)
         # 若UserQuestion有匹配到相似問句
         if len(result["hits"]["hits"]) != 0:
@@ -1644,7 +1650,7 @@ def SQuAD_chatbot_Reply(req):
     UserQuestionType = req['session']['params']['User_questionType']
     bookName = req['session']['params']['User_book']
     answerFrom = req['session']['params']['answerFrom']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     response = ""
     nextScene = ""
@@ -1802,7 +1808,7 @@ def SQuAD_get_Reason(req):
     system_Ans = req['session']['params']['system_Ans']
     bookName = req['session']['params']['User_book']
     answerFrom = req['session']['params']['answerFrom']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     
     find_common = {'type': 'common_elaboration'}
@@ -1867,7 +1873,7 @@ def SQuAD_get_Page(req):
     UserQuestionType = req['session']['params']['User_questionType']
     answerFrom = req['session']['params']['answerFrom']
     bookName = req['session']['params']['User_book']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     pages = None
     UserReason = req['session']['params']['User_reason']
@@ -1954,7 +1960,7 @@ def Prompt_character(req):
     player = req['user']['player']
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myMaterialList = nowBook['MaterialTable']
     # 搜尋書本素材
@@ -2044,7 +2050,7 @@ def Prompt_action(req):
     User_say_len = req['session']['params']['User_say_len']
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2131,7 +2137,7 @@ def Prompt_dialog(req):
     User_say_len = req['session']['params']['User_say_len']
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2217,7 +2223,7 @@ def Prompt_event(req):
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2453,7 +2459,7 @@ def Prompt_beginning(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myMaterialList = nowBook['MaterialTable']
     # 搜尋書本素材
@@ -2542,7 +2548,7 @@ def Prompt_character_sentiment(req):
     player = req['user']['player']
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2668,7 +2674,7 @@ def Prompt_action_sentiment(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2759,7 +2765,7 @@ def Prompt_vocabulary(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2835,7 +2841,7 @@ def Prompt_action_reason(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
     myMaterialList = nowBook['MaterialTable']
@@ -2927,7 +2933,7 @@ def Prompt_character_experience(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myVerbList = nowBook['VerbTable']
 
@@ -3000,7 +3006,7 @@ def Prompt_action_experience(req):
     if player == 2:
         user_dialog_count = req['session']['params']['user_dialog_count']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     # myVerbList = nowBook['VerbTable']
 
@@ -3071,7 +3077,7 @@ def Prompt_response(req, predictor, senta):
 
     bookName = req['session']['params']['User_book']
     nowScene = req['session']['params']['NowScene']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     myVerbList = nowBook['VerbTable']
@@ -4026,7 +4032,7 @@ def Question(req):
     session_id = req['session']['id']
     dialog_count = req['session']['params']['dialog_count']
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4106,7 +4112,7 @@ def Feeling(req):
     dialog_count_limit = req['session']['params']['dialog_count_limit']
     time = req['user']['lastSeenTime']
     partner = req['user']['partner']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4178,7 +4184,7 @@ def Assent(req):
     dialog_count = req['session']['params']['dialog_count']
     dialog_count_limit = req['session']['params']['dialog_count_limit']
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4243,7 +4249,7 @@ def Nonsense(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4325,7 +4331,7 @@ def Real(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4429,7 +4435,7 @@ def Moderator(req):
     User_say_len = req['session']['params']['User_say_len']
 
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4514,7 +4520,7 @@ def Moderator_connect(req):
     User_say_len = req['session']['params']['User_say_len']
     nowScene = req['session']['params']['NowScene']
     time = req['user']['lastSeenTime']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']
@@ -4607,7 +4613,7 @@ def expand(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     userClass = req['session']['params']['User_class']
@@ -4782,7 +4788,7 @@ def feedback(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myFeedback = nowBook['Feedback']
     myDialogList = nowBook['S_R_Dialog']
@@ -4877,7 +4883,7 @@ def expand_2players(req):
     User_say_len = req['session']['params']['User_say_len']
     partner = req['user']['partner']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     userClass = req['session']['params']['User_class']
@@ -5082,7 +5088,7 @@ def feedback_2players(req):
     dialog_count = req['session']['params']['dialog_count']
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myFeedback = nowBook['Feedback']
     myDialogList = nowBook['S_R_Dialog']
@@ -5212,7 +5218,7 @@ def summarize_2players(req):
     dialog_count = req['session']['params']['dialog_count']
     dialog_count_limit = req['session']['params']['dialog_count_limit']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
 
     myDialogList = nowBook['S_R_Dialog']
@@ -5319,7 +5325,7 @@ def Check_suggestion(req):
     noIdea_count = req['session']['params']['noIdea_count']
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     userSay = req['intent']['query']
@@ -5400,7 +5406,7 @@ def suggestion(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     dialog_index = myDialogList.find().count()
@@ -5518,7 +5524,7 @@ def Interest(req):
     question_count = req['session']['params']['question_count']
     User_say_len = req['session']['params']['User_say_len']
 
-    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_')
+    dbBookName = bookName.replace("'", "").replace('!', '').replace(",", "").replace(' ', '_').replace('.', '')
     nowBook = myClient[dbBookName]
     myDialogList = nowBook['S_R_Dialog']
     player = req['user']['player']

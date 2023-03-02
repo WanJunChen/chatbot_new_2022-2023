@@ -41,6 +41,8 @@ var toHiddenID = "Character"
 var User_TrainRecord;
 var leaderboardContent;
 var rankingIndex;
+// var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
+var book_list = ['A Journey of Love', "Mission I'm Possible", 'One Two Three... Fly!', 'Ryan the Rooster', "The Piano Isn't at Home"]
 
 
 // 使用者輸入訊息
@@ -721,6 +723,7 @@ function analyze_responseData(){
 	if(session["params"].hasOwnProperty("User_book") && session["params"]['NowScene'] == "Prompt_SQuAD"){
 		// 書本封面
 		var bookName = session["params"]["User_book"];
+		bookName = bookName.replace("'", "");
 		book.style.display = "block";
 		book_cover.style.display = "block"
 		book_showPages();
@@ -825,6 +828,7 @@ function analyze_responseData(){
 // book頁面顯示
 function book_showPages(){
 	var bookName = session["params"]["User_book"];
+	bookName = bookName.replace("'", "");
 	var OnePageImgUrl = '';
 	document.getElementById("book_id").innerHTML = '<div id="bookPage_id" style="width: 300px; height: 1650px; background-size: cover;"></div>';
 	OnePageImgUrl = Book_ImageFileUrl + bookName + '/Merge.jpg';
@@ -981,7 +985,6 @@ function openTestLeaderboard(){
 function load_trainRecord_content(User_TrainRecord){
 	var display_str = '';
 	var ES_bookName = ''
-	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
 	var flag_bookStart = false, flag_bookEnd = false;
 	document.getElementById("trainRecord_content_id").innerHTML = '';
 	if(User_TrainRecord["hits"]["hits"].length == 0){
@@ -994,7 +997,7 @@ function load_trainRecord_content(User_TrainRecord){
 			flag_bookEnd = false;
 			for(var j = User_TrainRecord["hits"]["hits"].length; j > 0; j --){
 				ES_bookName = User_TrainRecord["hits"]["hits"][j-1]["_index"].replace(/_/g, " ")
-				if(ES_bookName == book_list[i].toLowerCase()){
+				if(ES_bookName == book_list[i].replaceAll("'", "").replaceAll('!', '').replaceAll(",", "").replaceAll('.', '').toLowerCase()){
 					if(flag_bookStart == false){
 						display_str += '<h2>' + book_list[i] + '</h2>';
 						display_str += '<table>';
@@ -1024,7 +1027,6 @@ function load_testRecord_content(QAContent){
 	var content_length = 0;
 	var correct_count = 0;
 	var book_testRecord = {};
-	var book_list = ['Ralph the Puppy', 'Birthday Presents', 'My Special Friend', 'Little Donkey', 'Salt and Sugar'];
 	var flag_bookStart = false, flag_bookEnd = false;
 	
 	for(var i = 0; i < book_list.length; i ++){
