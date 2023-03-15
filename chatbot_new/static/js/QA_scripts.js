@@ -30,7 +30,7 @@ var usersay_last= "";
 var sync_waitInput_flag = 0;
 var rec_imageUrl = "";
 var post_count = 0;
-var suggest_arr = ["501", "502", "503", "504", "505", "506"];
+var suggest_arr = ["501", "505"];
 var score = 0;
 var suggest_exist = 0;
 // 心情變數 PA
@@ -1061,6 +1061,9 @@ function load_testRecord_content(QAContent){
 					for(var k = 0; k < content.length; k ++){
 						if(content[k][1] == null){ content[k][1] = '---';}
 						display_str += '<tr><td class="question" style="border: 0;">' + content[k]['question'] + '</td>';
+						if(content[k]['answer'] == null){
+							content[k]['answer'] = '(你的機器人不會)';
+						}
 						display_str += '<td class="answer" style="border: 0;">' + content[k]['answer'] + '</td>';
 						if(content[k]['adjusted_result'] == null){
 							if(content[k]['result'] == true){ content[k]['result'] = '<img src="/static/image/right.png">';}
