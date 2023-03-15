@@ -25,7 +25,7 @@ test_count: int
 correct_count: int
 # Prompt_task_list = ['Time', 'Location', 'Affection', 'Life']
 Prompt_task_list = ['Time']
-classList = ["501", "502", "503", "504", "505", "506"]
+classList = ["501", "505"]
 # set chatMode to 'chatBook' or 'QA'
 chatMode = 'QA'
 # 每本書共有23頁(都從第2頁開始)
