@@ -73,7 +73,6 @@ def addNew_ChatbotTestRecord(SQuADList, Challenge_id, bookName, user_id_chatbot,
     userSQuAD_result = copy.deepcopy(SQuADList.find_one(find_user))
     userSQuAD_result["QA_record"][bookName]['test_record'][str(Challenge_id)] = {
                                                                         'challenger_id': user_id_challenger,
-                                                                        'correct_count': 0,
                                                                         'content': []}
     SQuADList.update_one(find_user, {"$set": userSQuAD_result})
 
