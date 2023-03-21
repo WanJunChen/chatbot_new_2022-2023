@@ -1,0 +1,129 @@
+.refresh_time{
+  position: absolute;
+  height: 30px;
+  top: 35px;
+  left: 470px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.talk_content {
+  position:relative;
+	width:1000px;
+	height:800px;
+	background: rgba(249,249,249);
+	border-radius: 20px;
+  background-size: 90%;
+  background-position: top center  ;
+  background-repeat: no-repeat;
+  text-align: center;
+}
+#fish {
+  position: absolute;
+  width: 10%; 
+  bottom: 0;
+  left: 0;
+  margin: 0 45%;
+  padding: 0;
+}
+.info_content{
+  position: relative;
+  width:100%;
+  height:100%;
+  margin:10px auto 0;  
+  font-family: 微軟正黑體;
+  border-radius: 5px;
+  margin:0px auto;
+}
+
+.train_area, .test_area{
+  position: relative;
+  float: left;
+  width: 45%;
+  height: 93%;
+	border-radius: 20px;
+  margin: 2.5%;
+}
+.trainLeaderboard_content, .testLeaderboard_content{
+  position: relative;
+	border-radius: 20px;
+  height: 90%;
+  background: rgb(154, 186, 188);
+  padding: 10px;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trainLeaderboard_content::-webkit-scrollbar { display: none; }
+.testLeaderboard_content::-webkit-scrollbar { display: none; }
+
+.trainLeaderboard_content table, .testLeaderboard_content table{
+  width: 100%;
+  border-collapse: collapse;
+}
+.trainLeaderboard_content table,th,tr,td{
+  border-bottom: solid 1px #ffffff;
+  padding: 5px;
+  text-align: left;
+}
+.testLeaderboard_content table,th,tr,td{
+  border-bottom: solid 1px #ffffff;
+  padding: 5px;
+  text-align: left;
+}
+.trainLeaderboard_content .table-center, .testLeaderboard_content .table-center{
+  text-align: center;
+}
+.trainLeaderboard_content img, .testLeaderboard_content img{
+  width: 60px;
+}
+.trainLeaderboard_content .highlightBG, .testLeaderboard_content .highlightBG{
+  background:#1c1c1c;
+}
+.trainLeaderboard_content .Num, .testLeaderboard_content .Num{
+  color: #ffffff;
+  font-size: 40px;
+  text-align: centleer;
+}
+.Num {
+  position: relative;
+  width: 15%;
+  padding: 5px;
+  line-height: 2;
+}
+
+.info_content_title{
+  position: relative;
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
+  font-size: 25px;
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 1400px;
+}
+
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  padding: 0 30px;
+  /* background-image: url("../image/Background/TrainingRoom.jpg");
+  background-size: 50%;
+  background-position: bottom center;
+  background-repeat: no-repeat; */
+  background-image: linear-gradient(45deg, rgba(9, 12, 42, 0.9), rgba(116, 57, 141, 0.8));
+  
+  /* https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1353&q=80*/
+  background-size: cover;
+}
+
+/*去除iOS系统默認appearance的樣式*/
+input[type=button], input[type=submit], input[type=file], button { cursor: pointer; -webkit-appearance: none; } 
+

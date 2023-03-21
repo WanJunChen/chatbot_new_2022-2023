@@ -7,6 +7,8 @@ import paddlehub as hub
 import nltk
 import chatbot_func
 import chatbot_func_2
+import pymongo
+import connectDB
 
 
 app = Flask(__name__)
@@ -26,6 +28,16 @@ def expression():
 @app.route('/QAchatbot',methods=['POST','GET'])
 def QAchatbot():
 	return render_template('chatbot_QA.html')
+
+@app.route('/QAchatbot/teacherLeaderboard',methods=['POST','GET'])
+def QAchatbot_teacher():
+	return render_template('chatbot_QA_teacher.html')
+
+@app.route('/QAchatbot/leaderboard_data',methods=['POST','GET'])
+def leaderboard_data():
+	leaderboard_data = get_leaderboard_data()
+	return leaderboard_data
+
 
 @app.route('/talk',methods=['POST'])
 def getJson():
@@ -152,6 +164,20 @@ def analyze_Data(req):
 		print(response_dict)
 
 	return response_dict
+
+def get_leaderboard_data():
+    try:
+        myClient = pymongo.MongoClient("mongodb://localhost:27017/")
+        myBotData = myClient.Chatbot
+        myUserSQuADList = myBotData.UserSQuADTable
+    except Exception as e:
+        print(e)
+    leaderboardContent, testRankingIndex = connectDB.find_AllUser_trainCount(myUserSQuADList)
+    train_leaderboard_data = {'leaderboardContent': leaderboardContent, 'RankingIndex': testRankingIndex}
+    leaderboardContent, testRankingIndex = connectDB.find_AllChatbotScore(myUserSQuADList)
+    test_leaderboard_data = {'leaderboardContent': leaderboardContent, 'RankingIndex': testRankingIndex}
+    data = {'train_leaderboard': train_leaderboard_data, 'test_leaderboard': test_leaderboard_data}
+    return data
 
 
 if __name__ == "__main__":

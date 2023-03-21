@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width = device-width, initial-scale = 1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- 清除快取 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <title>問答聊天機器人公告</title>    
+		<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/QAteacher_style.css')}}?v=1.6.0"/></link>
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/speech_input.css') }}"/></link>
+    <link href="{{ url_for('static', filename='image/icon.png') }}" rel="shortcut icon">
+    
+</head>
+<body>
+    <!-- 對話顯示 -->
+      <div class="refresh_time" id="refresh_time_id"></div>
+    <div class="talk_content" id="talk_content_id">	 
+      <div class="info_content" id="info_content_id">  
+          <div class="train_area" id="train_area_id">
+            <div class="info_content_title">訓練題數排行榜</div>
+            <div class="trainLeaderboard_content" id="trainLeaderboard_content_id">{{data}}</div>
+          </div>
+          <div class="test_area" id="test_area_id">
+            <div class="info_content_title">競技場排行榜</div>
+            <div class="testLeaderboard_content" id="testLeaderboard_content_id">{{data}}</div>
+          </div>
+        <!--  -->
+        
+        
+      </div>
+      <img id="fish" src="{{url_for('static', filename='image/fishgirl.png')}}"></img>
+
+    </div>
+    
+
+  </body>
+</html>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='js/QA_teacher_scripts.js') }}?v=1.2.0" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='js/speech_input.js')}}" type="text/javascript"></script>

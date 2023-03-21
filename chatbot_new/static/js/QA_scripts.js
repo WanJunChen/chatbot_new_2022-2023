@@ -618,6 +618,7 @@ function analyze_responseData(){
 	// 判斷顯示輸入框及傳送按鈕
 	if (session["params"]['NextScene'] == "SQuAD_gameMode" ||
 		session["params"]['NowScene'] == "Prompt_SQuAD" ||
+		session["params"]['NextScene'] == "SQuAD_get_Type" ||
 		session["params"]['NowScene'] == "SQuAD_get_Page" ||
 		session["params"]['ask_for_Ans'] == true ||
 		session["params"]['first_nameChatbot'] == true){
@@ -628,7 +629,7 @@ function analyze_responseData(){
 	// 判斷隱藏輸入框及傳送按鈕
 	if (session["params"]['NextScene'] == "SQuAD_Get_ChatbotStyle" ||
 		session["params"]['NextScene'] == "Prompt_SQuAD" ||
-		(session["params"]['NowScene'] == "SQuAD_get_Ans" && session["params"]['NextScene'] == "SQuAD_get_Type")){
+		(session["params"]['NextScene'] == "SQuAD_get_Ans" && session["params"]['NowScene'] == "SQuAD_get_Type")){
 		document.getElementById("talkwords").disabled = "disabled";
 		document.getElementById("talksend").disabled = "disabled";
 	}

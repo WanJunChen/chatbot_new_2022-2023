@@ -41,7 +41,7 @@ book_list = [   'A Journey of Love',
                 'Ryan the Rooster',
                 "The Piano Isn't at Home"]
 
-Question_Type = { 'Character'         :'人物',
+Question_Type = { 'Character'       :'人物',
                 'Setting'           :'時間地點',
                 'Action'            :'行為',
                 'Feeling'           :'人物感受',
