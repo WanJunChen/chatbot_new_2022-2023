@@ -4,4 +4,4 @@
 3. `python main.py`
 ## 啟動機器人伺服器(本程式)
 1. `cd chatbot_new`
-2. `python main.py`
+2. `python run.py`
