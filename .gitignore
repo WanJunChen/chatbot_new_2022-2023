@@ -1,3 +1,4 @@
 
 *.pyc
 /chatbot_new/static/image/story_img/
+/chatbot_new/__pycache__/
